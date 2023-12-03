@@ -1,0 +1,42 @@
+// Copyright (c) 2023 Hubert Gruniaux
+// This file is part of asm which is released under the MIT license.
+// See file LICENSE.txt for full license details.
+
+#ifndef INSTRUCTION
+#define INSTRUCTION(name, opcode)
+#endif
+
+#ifndef BINARY_INSTRUCTION
+#define BINARY_INSTRUCTION(name, func) INSTRUCTION(name, 0)
+#endif
+
+#ifndef PSEUDO_INSTRUCTION
+#define PSEUDO_INSTRUCTION(name)
+#endif
+
+// @INSTRUCTIONS@
+INSTRUCTION(mov, 1)
+INSTRUCTION(load, 2)
+INSTRUCTION(loadi, 3)
+INSTRUCTION(store, 4)
+INSTRUCTION(push, 5)
+INSTRUCTION(pop, 6)
+
+// @BINARY_INSTRUCTIONS@
+BINARY_INSTRUCTION(add, 0)
+BINARY_INSTRUCTION(sub, 1)
+BINARY_INSTRUCTION(mul, 2)
+BINARY_INSTRUCTION(div, 3)
+BINARY_INSTRUCTION(and, 4)
+BINARY_INSTRUCTION(or, 5)
+BINARY_INSTRUCTION(xor, 6)
+BINARY_INSTRUCTION(nor, 7)
+
+// @PSEUDO_INSTRUCTIONS@
+PSEUDO_INSTRUCTION(test)
+PSEUDO_INSTRUCTION(not)
+PSEUDO_INSTRUCTION(neg)
+
+#undef PSEUDO_INSTRUCTION
+#undef BINARY_INSTRUCTION
+#undef INSTRUCTION
