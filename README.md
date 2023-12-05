@@ -1,2 +1,0 @@
-- `asm` contains the source code of the assembler.
-- `vm` contains the source code of the virtual machine.
