@@ -159,7 +159,7 @@ private:
 
 
 int main(int argc, char *argv[]) {
-    if (argc < 1) {
+    if (argc < 2) {
         fprintf(stderr, "ERROR: missing an input file\n");
         return EXIT_FAILURE;
     }
