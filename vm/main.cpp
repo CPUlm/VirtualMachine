@@ -80,6 +80,8 @@ struct CommandParser {
                 parse_execute();
             } else if (command == "step") {
                 parse_step();
+				} else if (command == "exit" || command == "quit")	{
+					exit(0);
             } else {
                 throw std::runtime_error("unknown command '" + std::string(command) + "'");
             }
