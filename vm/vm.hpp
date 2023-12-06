@@ -56,6 +56,7 @@ private:
     void execute_loadi(InstructionDecoder instruction);
     void execute_store(InstructionDecoder instruction);
     void execute_binary_inst(InstructionDecoder instruction);
+    void execute_jump(InstructionDecoder instruction);
 
 
 private:

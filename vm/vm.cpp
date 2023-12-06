@@ -40,6 +40,8 @@ void VM::decode(InstructionDecoder instruction) {
             return execute_loadi(instruction);
         case OP_store:
             return execute_store(instruction);
+        case OP_jump:
+            return execute_jump(instruction);
         default:
             fprintf(stderr, "ERROR: machine code ill-formed : opcode not recognised\n");
             exit(EXIT_FAILURE);
@@ -71,7 +73,7 @@ void VM::execute_mov(InstructionDecoder instruction) {
 void VM::execute_load(InstructionDecoder instruction) {
     reg_index_t rd = instruction.get_reg();
     reg_index_t rs = instruction.get_reg();
-    m_regs[rd] = read_ram(m_regs[rs]);
+    m_regs[rd] = read_ram(get_reg(rs));
 }
 
 void VM::execute_loadi(InstructionDecoder instruction) {
@@ -89,7 +91,7 @@ void VM::execute_loadi(InstructionDecoder instruction) {
 void VM::execute_store(InstructionDecoder instruction) {
     reg_index_t rd = instruction.get_reg();
     reg_index_t rs = instruction.get_reg();
-	 write_ram(m_regs[rd], m_regs[rs]);
+	 write_ram(get_reg(rd), get_reg(rs));
 }
 
 void VM::execute_binary_inst(InstructionDecoder instruction) {
@@ -131,6 +133,13 @@ void VM::execute_binary_inst(InstructionDecoder instruction) {
 
     set_reg(rd, rd_val);
 }
+void VM::execute_jump(InstructionDecoder instruction) {
+    reg_index_t rs = instruction.get_reg();
+	 m_pc = get_reg(rs);
+	 step();
+	 // TODO risque de off-by-one le plus simple est de tester une fois qu'on aura des tests
+}
+
 
 reg_t VM::get_reg(reg_index_t reg) const {
     if (reg <= 1)
