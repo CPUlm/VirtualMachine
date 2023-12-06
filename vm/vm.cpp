@@ -42,6 +42,8 @@ void VM::decode(InstructionDecoder instruction) {
             return execute_store(instruction);
         case OP_jump:
             return execute_jump(instruction);
+        case OP_jumpi:
+            return execute_jumpi(instruction);
         default:
             fprintf(stderr, "ERROR: machine code ill-formed : opcode not recognised\n");
             exit(EXIT_FAILURE);
@@ -139,6 +141,13 @@ void VM::execute_jump(InstructionDecoder instruction) {
 	 step();
 	 // TODO risque de off-by-one le plus simple est de tester une fois qu'on aura des tests
 }
+void VM::execute_jumpi(InstructionDecoder instruction) {
+    uint16_t imm = instruction.get(16);
+	 m_pc = imm;
+	 step();
+	 // TODO risque de off-by-one le plus simple est de tester une fois qu'on aura des tests
+}
+
 
 
 reg_t VM::get_reg(reg_index_t reg) const {
