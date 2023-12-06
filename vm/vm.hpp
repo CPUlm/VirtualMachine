@@ -6,10 +6,14 @@
 #define ASM_VM_VM_HPP
 
 #include "machine_code.hpp"
+#include <vector>
+
 
 using inst_t = MachineCodeInfo::InstructionTy;
 using reg_t = MachineCodeInfo::RegisterValueTy;
 using reg_index_t = MachineCodeInfo::RegisterIndexTy;
+using ram_word_t = MachineCodeInfo::RamWordTy;
+using ram_index_t = MachineCodeInfo::RamIndexTy;
 
 struct InstructionDecoder {
     inst_t instruction = 0;
@@ -43,6 +47,9 @@ private:
     [[nodiscard]] inst_t fetch() const;
     /// Decodes the instruction and execute it.
     void decode(InstructionDecoder instruction);
+	
+    ram_word_t read_ram(ram_index_t adr);
+    void write_ram(ram_index_t adr, ram_word_t value);
 
     void execute_mov(InstructionDecoder instruction);
     void execute_load(InstructionDecoder instruction);
@@ -50,11 +57,13 @@ private:
     void execute_store(InstructionDecoder instruction);
     void execute_binary_inst(InstructionDecoder instruction);
 
+
 private:
     std::size_t m_pc = 0;
     reg_t m_regs[MachineCodeInfo::REG_COUNT] = {0};
     const inst_t *m_code = nullptr;
     size_t m_code_length = 0;
+	 std::vector<ram_word_t> ram;
 };
 
 #endif//ASM_VM_VM_HPP

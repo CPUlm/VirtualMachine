@@ -24,7 +24,7 @@ struct MachineCodeInfo {
     using OpCodeTy = std::uint8_t;
 
     /// Count of bits used to encode a opcode.
-    static constexpr size_t OPCODE_BITS = 6;
+    static constexpr size_t OPCODE_BITS = 5;
     /// Bit mask used to retrieve an opcode.
     static constexpr InstructionTy OPCODE_MASK = (1 << OPCODE_BITS) - 1;
     /// The total maximum count of supported opcodes.
@@ -51,6 +51,11 @@ struct MachineCodeInfo {
     /// Count of bits used to encode the function selector for binary instructions.
     static constexpr size_t FUNC_SEL_BITS = 5;
     static constexpr size_t FUNC_SEL_MASK = (1 << FUNC_SEL_BITS) - 1;
+
+
+	 // size of words in RAM
+	 using RamWordTy = std::uint32_t;
+	 using RamIndexTy = std::uint32_t;
 };
 
 static_assert(MachineCodeInfo::OPCODE_BITS <= MachineCodeInfo::INSTRUCTION_BITS);

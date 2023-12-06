@@ -41,11 +41,26 @@ void VM::decode(InstructionDecoder instruction) {
         case OP_store:
             return execute_store(instruction);
         default:
-            fprintf(stderr, "ERROR: machine code ill-formed\n");
+            fprintf(stderr, "ERROR: machine code ill-formed : opcode not recognised\n");
             exit(EXIT_FAILURE);
             return;
     }
 }
+
+ram_word_t VM::read_ram(ram_index_t adr)	{
+    if (ram.size() <= adr)	{
+        ram.resize(adr+1, 0);
+        fprintf(stderr, "WARNING : try to read the ram without initialisation\n");
+    }
+	 return ram[adr];
+}
+void VM::write_ram(ram_index_t adr, ram_word_t value)	{
+    if (ram.size() <= adr)	{
+        ram.resize(adr+1, 0);
+    }
+	 ram[adr] = value;
+}
+	
 
 void VM::execute_mov(InstructionDecoder instruction) {
     reg_index_t rd = instruction.get_reg();
@@ -56,7 +71,7 @@ void VM::execute_mov(InstructionDecoder instruction) {
 void VM::execute_load(InstructionDecoder instruction) {
     reg_index_t rd = instruction.get_reg();
     reg_index_t rs = instruction.get_reg();
-    // TODO
+    m_regs[rd] = read_ram(m_regs[rs]);
 }
 
 void VM::execute_loadi(InstructionDecoder instruction) {
@@ -74,7 +89,7 @@ void VM::execute_loadi(InstructionDecoder instruction) {
 void VM::execute_store(InstructionDecoder instruction) {
     reg_index_t rd = instruction.get_reg();
     reg_index_t rs = instruction.get_reg();
-    // TODO
+	 write_ram(m_regs[rd], m_regs[rs]);
 }
 
 void VM::execute_binary_inst(InstructionDecoder instruction) {
