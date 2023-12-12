@@ -56,6 +56,10 @@ struct MachineCodeInfo {
 	 // size of words in RAM
 	 using RamWordTy = std::uint32_t;
 	 using RamIndexTy = std::uint32_t;
+
+	 // flags
+	 static constexpr size_t NB_FLAGS = 4;
+
 };
 
 static_assert(MachineCodeInfo::OPCODE_BITS <= MachineCodeInfo::INSTRUCTION_BITS);

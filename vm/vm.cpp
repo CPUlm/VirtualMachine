@@ -64,6 +64,13 @@ void VM::write_ram(ram_index_t adr, ram_word_t value)	{
     }
 	 ram[adr] = value;
 }
+
+bool VM::test_flags(size_t select)	{
+	for (int i = 0; i < MachineCodeInfo::NB_FLAGS; i++) 
+		if ((select & (1<<i)) && flags[i])
+			return true;
+	return false;
+}
 	
 
 void VM::execute_mov(InstructionDecoder instruction) {
@@ -97,6 +104,7 @@ void VM::execute_store(InstructionDecoder instruction) {
 }
 
 void VM::execute_binary_inst(InstructionDecoder instruction) {
+    // TODO : update the flags
     reg_index_t rd = instruction.get_reg();
     reg_index_t rs1 = instruction.get_reg();
     reg_index_t rs2 = instruction.get_reg();
@@ -147,6 +155,7 @@ void VM::execute_jumpi(InstructionDecoder instruction) {
 	 step();
 	 // TODO risque de off-by-one le plus simple est de tester une fois qu'on aura des tests
 }
+
 
 
 

@@ -50,6 +50,7 @@ private:
 	
     ram_word_t read_ram(ram_index_t adr);
     void write_ram(ram_index_t adr, ram_word_t value);
+	 bool test_flags(size_t select);
 
     void execute_mov(InstructionDecoder instruction);
     void execute_load(InstructionDecoder instruction);
@@ -66,6 +67,7 @@ private:
     const inst_t *m_code = nullptr;
     size_t m_code_length = 0;
 	 std::vector<ram_word_t> ram;
+	 bool flags [MachineCodeInfo::NB_FLAGS];
 };
 
 #endif//ASM_VM_VM_HPP
