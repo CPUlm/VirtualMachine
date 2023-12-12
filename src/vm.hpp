@@ -42,6 +42,7 @@ public:
 
     [[nodiscard]] bool at_end() const { return m_pc >= m_code_length; }
 
+    [[nodiscard]] std::uint32_t get_pc() const { return m_pc; }
     [[nodiscard]] reg_t get_reg(reg_index_t reg) const;
     void set_reg(reg_index_t reg, reg_t value);
 
