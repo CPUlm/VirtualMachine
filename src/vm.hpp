@@ -74,8 +74,8 @@ private:
     reg_t m_regs[MachineCodeInfo::REG_COUNT] = { 0 };
     const inst_t* m_code = nullptr;
     size_t m_code_length = 0;
-    std::vector<ram_word_t> ram;
-    bool flags[MachineCodeInfo::NB_FLAGS];
+    std::vector<ram_word_t> m_ram;
+    bool m_flags[MachineCodeInfo::NB_FLAGS];
 };
 
 #endif // ASM_VM_VM_HPP

@@ -6,6 +6,7 @@
 
 #include <cstdio>
 #include <cstdlib>
+#include <cstring>
 
 VM::VM(const inst_t* code, size_t length)
     : m_code(code)
@@ -25,24 +26,24 @@ void VM::step() {
 }
 
 ram_word_t VM::read_ram(ram_index_t adr) {
-    if (ram.size() <= adr) {
-        ram.resize(adr + 1, 0);
+    if (m_ram.size() <= adr) {
+        m_ram.resize(adr + 1, 0);
         fprintf(stderr,
             "WARNING : try to read the ram without initialisation\n");
     }
-    return ram[adr];
+    return m_ram[adr];
 }
 
 void VM::write_ram(ram_index_t adr, ram_word_t value) {
-    if (ram.size() <= adr) {
-        ram.resize(adr + 1, 0);
+    if (m_ram.size() <= adr) {
+        m_ram.resize(adr + 1, 0);
     }
-    ram[adr] = value;
+    m_ram[adr] = value;
 }
 
 bool VM::test_flags(size_t select) {
     for (int i = 0; i < MachineCodeInfo::NB_FLAGS; i++)
-        if ((select & (1 << i)) && flags[i])
+        if ((select & (1 << i)) && m_flags[i])
             return true;
     return false;
 }
@@ -88,6 +89,8 @@ void VM::execute_alu(InstructionDecoder instruction) {
     const reg_t rs1_val = get_reg(rs1);
     const reg_t rs2_val = get_reg(rs2);
 
+    std::memset(m_flags, 0, sizeof(m_flags));
+
     reg_t rd_val = 0;
     switch (alucode) {
     case BF_and:
@@ -103,13 +106,15 @@ void VM::execute_alu(InstructionDecoder instruction) {
         rd_val = rs1_val ^ rs2_val;
         break;
     case BF_add:
-        rd_val = rs1_val + rs2_val;
+        m_flags[FLAG_OVERFLOW] = __builtin_add_overflow((std::int32_t)rs1_val, (std::int32_t)rs2_val, (std::int32_t*)&rd_val);
+        m_flags[FLAG_CARRY] = __builtin_add_overflow((std::uint32_t)rs1_val, (std::uint32_t)rs2_val, (std::uint32_t*)&rd_val);
         break;
     case BF_sub:
-        rd_val = rs1_val - rs2_val;
+        m_flags[FLAG_OVERFLOW] = __builtin_sub_overflow((std::int32_t)rs1_val, (std::int32_t)rs2_val, (std::int32_t*)&rd_val);
+        m_flags[FLAG_CARRY] = __builtin_sub_overflow((std::uint32_t)rs1_val, (std::uint32_t)rs2_val, (std::uint32_t*)&rd_val);
         break;
     case BF_mul:
-        rd_val = rs1_val * rs2_val;
+        m_flags[FLAG_OVERFLOW] = __builtin_mul_overflow(rs1_val, rs2_val, &rd_val);
         break;
     case BF_div:
         rd_val = rs1_val / rs2_val;
@@ -118,6 +123,9 @@ void VM::execute_alu(InstructionDecoder instruction) {
         error("invalid ALU code");
         break;
     }
+
+    m_flags[FLAG_ZERO] = (rd_val == 0);
+    m_flags[FLAG_NEGATIVE] = (((std::int32_t)rd_val) < 0);
 
     set_reg(rd, rd_val);
 }

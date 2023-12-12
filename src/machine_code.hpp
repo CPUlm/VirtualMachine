@@ -74,4 +74,11 @@ enum alucode_t {
 #include "instructions.def"
 };
 
+enum flag_t {
+    FLAG_ZERO = 0,
+    FLAG_NEGATIVE = 1,
+    FLAG_CARRY = 2,
+    FLAG_OVERFLOW = 3
+};
+
 #endif // ASM_COMMON_MACHINE_CODE_HPP
