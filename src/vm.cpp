@@ -66,6 +66,12 @@ void VM::execute(InstructionDecoder instruction) {
         return execute_jmpc(instruction);
     case OP_jmpic:
         return execute_jmpic(instruction);
+    case OP_lsl:
+        return execute_lsl(instruction);
+    case OP_asr:
+        return execute_asr(instruction);
+    case OP_lsr:
+        return execute_lsr(instruction);
     default:
         error("invalid opcode");
         return;
@@ -163,6 +169,38 @@ void VM::execute_jmpic(InstructionDecoder instruction) {
     size_t select = instruction.get(MachineCodeInfo::NB_FLAGS);
     if (test_flags(select))
         m_pc += imm;
+}
+
+void VM::execute_lsl(InstructionDecoder instruction) {
+    reg_index_t rd = instruction.get_reg();
+    reg_index_t rs1 = instruction.get_reg();
+    reg_index_t rs2 = instruction.get_reg();
+
+    const reg_t rs1_val = get_reg(rs1);
+    const reg_t rs2_val = get_reg(rs2) & 0b11111;
+    set_reg(rd, rs1_val << rs2_val);
+}
+
+void VM::execute_asr(InstructionDecoder instruction) {
+    reg_index_t rd = instruction.get_reg();
+    reg_index_t rs1 = instruction.get_reg();
+    reg_index_t rs2 = instruction.get_reg();
+
+    const reg_t rs1_val = get_reg(rs1);
+    const reg_t rs2_val = get_reg(rs2) & 0b11111;
+    // Logical shift is done when operating on SIGNED values.
+    set_reg(rd, (std::int32_t)(rs1_val) >> rs2_val);
+}
+
+void VM::execute_lsr(InstructionDecoder instruction) {
+    reg_index_t rd = instruction.get_reg();
+    reg_index_t rs1 = instruction.get_reg();
+    reg_index_t rs2 = instruction.get_reg();
+
+    const reg_t rs1_val = get_reg(rs1);
+    const reg_t rs2_val = get_reg(rs2) & 0b11111;
+    // Logical shift is done when operating on UNSIGNED values.
+    set_reg(rd, (std::uint32_t)(rs1_val) >> rs2_val);
 }
 
 void VM::warning(const char* msg) {
