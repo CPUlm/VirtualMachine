@@ -1,0 +1,41 @@
+.text
+
+; Compute fib(8)
+
+; int fib(int n) {
+;     if (n <= 1) {
+;         return n;
+;     } else {
+;         return fib(n - 1) + fib(n - 2);
+;     }
+; }
+fib:
+    ; r20 = n
+    ; if (n <= 1)
+    sub r2 r20 r1 ; r2 = r20 - 1
+    jmp.z $fib1
+    ; r3 = fib(n - 1)
+    mov r20 r2
+    call $fib
+    mov r3 rout
+    ; rout = fib(n - 2)
+    sub r20 r2 r1
+    call $fib
+    ; return fib(n - 1) + fib(n - 2)
+    add rout r3 rout
+    ret
+fib1:
+    ; return n
+    mov rout r20
+    ret
+
+main:
+    loadi r20 8
+    call $fib
+    loadi r2 21
+    sub r2 r2 r20
+    jmp.z $success
+    loadi rout 0
+success:
+    loadi rout 1
+    halt
