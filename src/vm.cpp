@@ -109,6 +109,18 @@ void VM::execute_binary_inst(InstructionDecoder instruction) {
 
     reg_t rd_val = 0;
     switch (alucode) {
+    case BF_and:
+        rd_val = rs1_val & rs2_val;
+        break;
+    case BF_or:
+        rd_val = rs1_val | rs2_val;
+        break;
+    case BF_nor:
+        rd_val = ~(rs1_val | rs2_val);
+        break;
+    case BF_xor:
+        rd_val = rs1_val ^ rs2_val;
+        break;
     case BF_add:
         rd_val = rs1_val + rs2_val;
         break;
@@ -120,18 +132,6 @@ void VM::execute_binary_inst(InstructionDecoder instruction) {
         break;
     case BF_div:
         rd_val = rs1_val / rs2_val;
-        break;
-    case BF_and:
-        rd_val = rs1_val & rs2_val;
-        break;
-    case BF_or:
-        rd_val = rs1_val | rs2_val;
-        break;
-    case BF_xor:
-        rd_val = rs1_val ^ rs2_val;
-        break;
-    case BF_nor:
-        rd_val = ~(rs1_val | rs2_val);
         break;
     default:
         error("invalid ALU code");
