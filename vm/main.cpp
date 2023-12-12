@@ -80,8 +80,8 @@ struct CommandParser {
                 parse_execute();
             } else if (command == "step") {
                 parse_step();
-				} else if (command == "exit" || command == "quit")	{
-					exit(0);
+            } else if (command == "exit" || command == "quit") {
+                exit(0);
             } else {
                 throw std::runtime_error("unknown command '" + std::string(command) + "'");
             }
@@ -163,13 +163,12 @@ int main(int argc, char *argv[]) {
         fprintf(stderr, "ERROR: missing an input file\n");
         return EXIT_FAILURE;
     }
-	 for (int iArg = 1; iArg < argc; iArg++)	{
-		if (strcmp(argv[iArg],"--help") == 0 || strcmp(argv[iArg],"-h") == 0 )	{
-			std::cout << "SYNOPSIS :\n  ./vm filename\n  ./vm --help\n\nCOMMANDS :\n  execute\n  step\n  reg get regName\n  reg set regName value\n  exit / quit\n";
-			exit(0);
-		}
-	}
-			
+    for (int iArg = 1; iArg < argc; iArg++) {
+        if (strcmp(argv[iArg],"--help") == 0 || strcmp(argv[iArg],"-h") == 0 ) {
+            std::cout << "SYNOPSIS :\n  ./vm filename\n  ./vm --help\n\nCOMMANDS :\n  execute\n  step\n  reg get regName\n  reg set regName value\n  exit / quit\n";
+            exit(0);
+        }
+    }
 
 #define REG(name, i) REGISTERS.insert({name, i});
 #include "regs.def"
