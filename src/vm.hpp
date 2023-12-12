@@ -54,10 +54,13 @@ private:
     bool test_flags(size_t select);
 
     void execute(InstructionDecoder instruction);
+    void execute_alu(InstructionDecoder instruction);
+    void execute_lsl(InstructionDecoder instruction);
+    void execute_asr(InstructionDecoder instruction);
+    void execute_lsr(InstructionDecoder instruction);
     void execute_load(InstructionDecoder instruction);
     void execute_loadi(InstructionDecoder instruction);
     void execute_store(InstructionDecoder instruction);
-    void execute_alu_inst(InstructionDecoder instruction);
     void execute_jmp(InstructionDecoder instruction);
     void execute_jmpi(InstructionDecoder instruction);
     void execute_jmpc(InstructionDecoder instruction);

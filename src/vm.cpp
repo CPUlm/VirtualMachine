@@ -51,7 +51,13 @@ void VM::execute(InstructionDecoder instruction) {
     const opcode_t opcode = instruction.get_opcode();
     switch (opcode) {
     case OP_alu:
-        return execute_alu_inst(instruction);
+        return execute_alu(instruction);
+    case OP_lsl:
+        return execute_lsl(instruction);
+    case OP_asr:
+        return execute_asr(instruction);
+    case OP_lsr:
+        return execute_lsr(instruction);
     case OP_load:
         return execute_load(instruction);
     case OP_loadi:
@@ -66,44 +72,13 @@ void VM::execute(InstructionDecoder instruction) {
         return execute_jmpc(instruction);
     case OP_jmpic:
         return execute_jmpic(instruction);
-    case OP_lsl:
-        return execute_lsl(instruction);
-    case OP_asr:
-        return execute_asr(instruction);
-    case OP_lsr:
-        return execute_lsr(instruction);
     default:
         error("invalid opcode");
         return;
     }
 }
 
-void VM::execute_load(InstructionDecoder instruction) {
-    reg_index_t rd = instruction.get_reg();
-    reg_index_t rs = instruction.get_reg();
-    m_regs[rd] = read_ram(get_reg(rs));
-}
-
-void VM::execute_loadi(InstructionDecoder instruction) {
-    reg_index_t rd = instruction.get_reg();
-    reg_index_t rs = instruction.get_reg();
-    uint16_t imm = instruction.get(16);
-    bool lhw = instruction.get(1);
-
-    if (lhw) {
-        m_regs[rd] = get_reg(rs) + imm;
-    } else {
-        m_regs[rd] = get_reg(rs) + (imm << 16);
-    }
-}
-
-void VM::execute_store(InstructionDecoder instruction) {
-    reg_index_t rd = instruction.get_reg();
-    reg_index_t rs = instruction.get_reg();
-    write_ram(get_reg(rd), get_reg(rs));
-}
-
-void VM::execute_alu_inst(InstructionDecoder instruction) {
+void VM::execute_alu(InstructionDecoder instruction) {
     // TODO : update the flags
     reg_index_t rd = instruction.get_reg();
     reg_index_t rs1 = instruction.get_reg();
@@ -147,30 +122,6 @@ void VM::execute_alu_inst(InstructionDecoder instruction) {
     set_reg(rd, rd_val);
 }
 
-void VM::execute_jmp(InstructionDecoder instruction) {
-    reg_index_t rs = instruction.get_reg();
-    m_pc = get_reg(rs) - 1;
-}
-
-void VM::execute_jmpi(InstructionDecoder instruction) {
-    uint16_t imm = instruction.get(16);
-    m_pc += imm;
-}
-
-void VM::execute_jmpc(InstructionDecoder instruction) {
-    reg_index_t rs = instruction.get_reg();
-    size_t select = instruction.get(MachineCodeInfo::NB_FLAGS);
-    if (test_flags(select))
-        m_pc = get_reg(rs) - 1;
-}
-
-void VM::execute_jmpic(InstructionDecoder instruction) {
-    uint16_t imm = instruction.get(16);
-    size_t select = instruction.get(MachineCodeInfo::NB_FLAGS);
-    if (test_flags(select))
-        m_pc += imm;
-}
-
 void VM::execute_lsl(InstructionDecoder instruction) {
     reg_index_t rd = instruction.get_reg();
     reg_index_t rs1 = instruction.get_reg();
@@ -201,6 +152,55 @@ void VM::execute_lsr(InstructionDecoder instruction) {
     const reg_t rs2_val = get_reg(rs2) & 0b11111;
     // Logical shift is done when operating on UNSIGNED values.
     set_reg(rd, (std::uint32_t)(rs1_val) >> rs2_val);
+}
+
+void VM::execute_load(InstructionDecoder instruction) {
+    reg_index_t rd = instruction.get_reg();
+    reg_index_t rs = instruction.get_reg();
+    m_regs[rd] = read_ram(get_reg(rs));
+}
+
+void VM::execute_loadi(InstructionDecoder instruction) {
+    reg_index_t rd = instruction.get_reg();
+    reg_index_t rs = instruction.get_reg();
+    uint16_t imm = instruction.get(16);
+    bool lhw = instruction.get(1);
+
+    if (lhw) {
+        m_regs[rd] = get_reg(rs) + imm;
+    } else {
+        m_regs[rd] = get_reg(rs) + (imm << 16);
+    }
+}
+
+void VM::execute_store(InstructionDecoder instruction) {
+    reg_index_t rd = instruction.get_reg();
+    reg_index_t rs = instruction.get_reg();
+    write_ram(get_reg(rd), get_reg(rs));
+}
+
+void VM::execute_jmp(InstructionDecoder instruction) {
+    reg_index_t rs = instruction.get_reg();
+    m_pc = get_reg(rs) - 1;
+}
+
+void VM::execute_jmpi(InstructionDecoder instruction) {
+    uint16_t imm = instruction.get(16);
+    m_pc += imm;
+}
+
+void VM::execute_jmpc(InstructionDecoder instruction) {
+    reg_index_t rs = instruction.get_reg();
+    size_t select = instruction.get(MachineCodeInfo::NB_FLAGS);
+    if (test_flags(select))
+        m_pc = get_reg(rs) - 1;
+}
+
+void VM::execute_jmpic(InstructionDecoder instruction) {
+    uint16_t imm = instruction.get(16);
+    size_t select = instruction.get(MachineCodeInfo::NB_FLAGS);
+    if (test_flags(select))
+        m_pc += imm;
 }
 
 void VM::warning(const char* msg) {
