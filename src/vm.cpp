@@ -157,7 +157,7 @@ void VM::execute_lsr(InstructionDecoder instruction) {
 void VM::execute_load(InstructionDecoder instruction) {
     reg_index_t rd = instruction.get_reg();
     reg_index_t rs = instruction.get_reg();
-    m_regs[rd] = read_ram(get_reg(rs));
+    set_reg(rd, read_ram(get_reg(rs)));
 }
 
 void VM::execute_loadi(InstructionDecoder instruction) {
@@ -167,9 +167,9 @@ void VM::execute_loadi(InstructionDecoder instruction) {
     bool lhw = instruction.get(1);
 
     if (lhw) {
-        m_regs[rd] = get_reg(rs) + imm;
+        set_reg(rd, get_reg(rs) + imm);
     } else {
-        m_regs[rd] = get_reg(rs) + (imm << 16);
+        set_reg(rd,  get_reg(rs) + (imm << 16));
     }
 }
 
