@@ -57,7 +57,7 @@ private:
     void execute_load(InstructionDecoder instruction);
     void execute_loadi(InstructionDecoder instruction);
     void execute_store(InstructionDecoder instruction);
-    void execute_binary_inst(InstructionDecoder instruction);
+    void execute_alu_inst(InstructionDecoder instruction);
     void execute_jmp(InstructionDecoder instruction);
     void execute_jmpi(InstructionDecoder instruction);
     void execute_jmpc(InstructionDecoder instruction);

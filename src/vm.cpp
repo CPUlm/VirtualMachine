@@ -51,7 +51,7 @@ void VM::execute(InstructionDecoder instruction) {
     const opcode_t opcode = instruction.get_opcode();
     switch (opcode) {
     case OP_alu:
-        return execute_binary_inst(instruction);
+        return execute_alu_inst(instruction);
     case OP_load:
         return execute_load(instruction);
     case OP_loadi:
@@ -97,7 +97,7 @@ void VM::execute_store(InstructionDecoder instruction) {
     write_ram(get_reg(rd), get_reg(rs));
 }
 
-void VM::execute_binary_inst(InstructionDecoder instruction) {
+void VM::execute_alu_inst(InstructionDecoder instruction) {
     // TODO : update the flags
     reg_index_t rd = instruction.get_reg();
     reg_index_t rs1 = instruction.get_reg();
