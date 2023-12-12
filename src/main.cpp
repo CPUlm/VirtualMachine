@@ -170,9 +170,6 @@ int main(int argc, char *argv[]) {
         }
     }
 
-#define REG(name, i) REGISTERS.insert({name, i});
-#include "regs.def"
-
     std::ifstream input(argv[1], std::ios::binary);
     const std::vector<char> buffer(std::istreambuf_iterator<char>(input), {});
     input.close();
