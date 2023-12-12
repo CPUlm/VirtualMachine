@@ -47,10 +47,10 @@ private:
     [[nodiscard]] inst_t fetch() const;
     /// Decodes the instruction and execute it.
     void decode(InstructionDecoder instruction);
-	
+    
     ram_word_t read_ram(ram_index_t adr);
     void write_ram(ram_index_t adr, ram_word_t value);
-	 bool test_flags(size_t select);
+    bool test_flags(size_t select);
 
     void execute_mov(InstructionDecoder instruction);
     void execute_load(InstructionDecoder instruction);
@@ -59,6 +59,8 @@ private:
     void execute_binary_inst(InstructionDecoder instruction);
     void execute_jump(InstructionDecoder instruction);
     void execute_jumpi(InstructionDecoder instruction);
+    void execute_jumpc(InstructionDecoder instruction);
+    void execute_jumpic(InstructionDecoder instruction);
 
 
 private:
@@ -66,8 +68,8 @@ private:
     reg_t m_regs[MachineCodeInfo::REG_COUNT] = {0};
     const inst_t *m_code = nullptr;
     size_t m_code_length = 0;
-	 std::vector<ram_word_t> ram;
-	 bool flags [MachineCodeInfo::NB_FLAGS];
+    std::vector<ram_word_t> ram;
+    bool flags [MachineCodeInfo::NB_FLAGS];
 };
 
 #endif//ASM_VM_VM_HPP

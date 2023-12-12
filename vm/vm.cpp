@@ -44,6 +44,10 @@ void VM::decode(InstructionDecoder instruction) {
             return execute_jump(instruction);
         case OP_jumpi:
             return execute_jumpi(instruction);
+        case OP_jumpc:
+            return execute_jumpc(instruction);
+        case OP_jumpic:
+            return execute_jumpic(instruction);
         default:
             fprintf(stderr, "ERROR: machine code ill-formed : opcode not recognised\n");
             exit(EXIT_FAILURE);
@@ -51,27 +55,27 @@ void VM::decode(InstructionDecoder instruction) {
     }
 }
 
-ram_word_t VM::read_ram(ram_index_t adr)	{
-    if (ram.size() <= adr)	{
+ram_word_t VM::read_ram(ram_index_t adr) {
+    if (ram.size() <= adr)    {
         ram.resize(adr+1, 0);
         fprintf(stderr, "WARNING : try to read the ram without initialisation\n");
     }
-	 return ram[adr];
+     return ram[adr];
 }
-void VM::write_ram(ram_index_t adr, ram_word_t value)	{
-    if (ram.size() <= adr)	{
+void VM::write_ram(ram_index_t adr, ram_word_t value) {
+    if (ram.size() <= adr)    {
         ram.resize(adr+1, 0);
     }
-	 ram[adr] = value;
+     ram[adr] = value;
 }
 
-bool VM::test_flags(size_t select)	{
-	for (int i = 0; i < MachineCodeInfo::NB_FLAGS; i++) 
-		if ((select & (1<<i)) && flags[i])
-			return true;
-	return false;
+bool VM::test_flags(size_t select)    {
+    for (int i = 0; i < MachineCodeInfo::NB_FLAGS; i++) 
+        if ((select & (1<<i)) && flags[i])
+            return true;
+    return false;
 }
-	
+    
 
 void VM::execute_mov(InstructionDecoder instruction) {
     reg_index_t rd = instruction.get_reg();
@@ -100,7 +104,7 @@ void VM::execute_loadi(InstructionDecoder instruction) {
 void VM::execute_store(InstructionDecoder instruction) {
     reg_index_t rd = instruction.get_reg();
     reg_index_t rs = instruction.get_reg();
-	 write_ram(get_reg(rd), get_reg(rs));
+     write_ram(get_reg(rd), get_reg(rs));
 }
 
 void VM::execute_binary_inst(InstructionDecoder instruction) {
@@ -145,17 +149,24 @@ void VM::execute_binary_inst(InstructionDecoder instruction) {
 }
 void VM::execute_jump(InstructionDecoder instruction) {
     reg_index_t rs = instruction.get_reg();
-	 m_pc = get_reg(rs);
-	 step();
-	 // TODO risque de off-by-one le plus simple est de tester une fois qu'on aura des tests
+    m_pc = get_reg(rs)-1;
 }
 void VM::execute_jumpi(InstructionDecoder instruction) {
     uint16_t imm = instruction.get(16);
-	 m_pc = imm;
-	 step();
-	 // TODO risque de off-by-one le plus simple est de tester une fois qu'on aura des tests
+    m_pc += imm;
 }
-
+void VM::execute_jumpc(InstructionDecoder instruction)    {
+    reg_index_t rs = instruction.get_reg();
+    size_t select = instruction.get(MachineCodeInfo::NB_FLAGS);
+    if (test_flags(select))
+        m_pc = get_reg(rs)-1;
+}
+void VM::execute_jumpic(InstructionDecoder instruction)    {
+    uint16_t imm = instruction.get(16);
+    size_t select = instruction.get(MachineCodeInfo::NB_FLAGS);
+    if (test_flags(select))
+        m_pc += imm;
+}
 
 
 
