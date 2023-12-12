@@ -49,37 +49,29 @@ struct MachineCodeInfo {
     /// Type of the function selector for binary instructions.
     using FuncSelTy = std::uint8_t;
     /// Count of bits used to encode the function selector for binary instructions.
-    static constexpr size_t FUNC_SEL_BITS = 5;
-    static constexpr size_t FUNC_SEL_MASK = (1 << FUNC_SEL_BITS) - 1;
+    static constexpr size_t ALUCODE_BITS = 5;
+    static constexpr size_t ALUCODE_MASK = (1 << ALUCODE_BITS) - 1;
 
+    // size of words in RAM
+    using RamWordTy = std::uint32_t;
+    using RamIndexTy = std::uint32_t;
 
-	 // size of words in RAM
-	 using RamWordTy = std::uint32_t;
-	 using RamIndexTy = std::uint32_t;
-
-	 // flags
-	 static constexpr size_t NB_FLAGS = 4;
-
+    // flags
+    static constexpr size_t NB_FLAGS = 4;
 };
 
 static_assert(MachineCodeInfo::OPCODE_BITS <= MachineCodeInfo::INSTRUCTION_BITS);
 static_assert(MachineCodeInfo::REG_BITS <= MachineCodeInfo::INSTRUCTION_BITS);
+static_assert(MachineCodeInfo::ALUCODE_BITS <= MachineCodeInfo::INSTRUCTION_BITS);
 
-enum Instruction {
-#define INSTRUCTION(name, opcode) INST_##name,
-#define PSEUDO_INSTRUCTION(name) INST_##name,
-#include "instructions.def"
-};
-
-enum OpCode {
-    OP_binary_inst = 0,
+enum opcode_t {
 #define INSTRUCTION(name, opcode) OP_##name = opcode,
 #include "instructions.def"
 };
 
-enum BinaryFunc {
+enum alucode_t {
 #define BINARY_INSTRUCTION(name, func) BF_##name,
 #include "instructions.def"
 };
 
-#endif//ASM_COMMON_MACHINE_CODE_HPP
+#endif // ASM_COMMON_MACHINE_CODE_HPP

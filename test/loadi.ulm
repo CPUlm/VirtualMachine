@@ -1,0 +1,5 @@
+.text
+
+main:
+    loadi rout 1
+    halt

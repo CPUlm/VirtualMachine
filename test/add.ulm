@@ -1,0 +1,15 @@
+.text
+
+main:
+    loadi r2 5
+    loadi r3 7
+    add r4 r2 r3 ; r4 should contain 12
+    loadi r5 12
+    sub r6 r4 r5
+    jmp.z fail
+    loadi rout 1
+    jmp end
+fail:
+    loadi rout 0
+end:
+    halt
