@@ -121,6 +121,7 @@ int cpulm_disassemble_file(const char* filename) {
 int main(int argc, char* argv[]) {
     if (argc <= 1) {
         fprintf(stderr, "\x1b[31merror:\x1b[0m missing program binary file\n");
+        fprintf(stderr, "USAGE: %s file_path\n", argv[0]);
         return EXIT_FAILURE;
     }
 
