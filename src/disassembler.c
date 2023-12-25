@@ -13,8 +13,41 @@ enum alucode_t {
 #include "instructions.def"
 };
 
+enum flag_t {
+    FLAG_ZERO = 0,
+    FLAG_NEGATIVE = 1,
+    FLAG_CARRY = 2,
+    FLAG_OVERFLOW = 3
+};
+
 static inline uint32_t get_bits(uint32_t inst, uint32_t start, uint32_t length) {
     return (inst >> start) & ((1 << length) - 1);
+}
+
+struct SignExtend24 {
+    int32_t x : 24;
+};
+
+static inline int32_t sign_extend_24(int32_t value) {
+    struct SignExtend24 s;
+    return (s.x = value);
+}
+
+static inline const char* compute_flags_string(uint32_t flags) {
+    static char buffer[5];
+    char* ptr = buffer;
+
+    printf("%d\n", flags);
+    if ((flags & (1 << FLAG_ZERO)) != 0)
+        *ptr++ = 'z';
+    if ((flags & (1 << FLAG_NEGATIVE)) != 0)
+        *ptr++ = 'n';
+    if ((flags & (1 << FLAG_CARRY)) != 0)
+        *ptr++ = 'c';
+    if ((flags & (1 << FLAG_OVERFLOW)) != 0)
+        *ptr++ = 'v';
+    *ptr++ = '\0';
+    return &buffer[0];
 }
 
 int cpulm_disassemble_inst(uint32_t inst) {
@@ -81,17 +114,17 @@ int cpulm_disassemble_inst(uint32_t inst) {
     case OP_jmp:
         printf("jmp r%d\n", rd);
         break;
-    case OP_jmpc:
-        // TODO: print flags
-        printf("jmpc r%d\n", rd);
-        break;
+    case OP_jmpc: {
+        const char* flags = compute_flags_string(get_bits(inst, 9, 4));
+        printf("jmpc.%s r%d\n", flags, rd);
+    } break;
     case OP_jmpi:
-        printf("jmpi %#x\n", get_bits(inst, 4, 24));
+        printf("jmpi %d\n", sign_extend_24(get_bits(inst, 4, 24)));
         break;
-    case OP_jmpic:
-        // TODO: print flags
-        printf("jmpic %#x\n", get_bits(inst, 4, 24));
-        break;
+    case OP_jmpic: {
+        const char* flags = compute_flags_string(get_bits(inst, 28, 4));
+        printf("jmpic.%s %d\n", flags, sign_extend_24(get_bits(inst, 4, 24)));
+    } break;
     default:
         printf("; invalid instruction, opcode = %#x\n", opcode);
         return 1;
