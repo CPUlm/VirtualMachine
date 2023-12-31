@@ -38,7 +38,7 @@ struct InstructionDecoder {
 
 class VM {
 public:
-    VM(const inst_t* code, size_t length);
+    VM(const std::vector<std::uint32_t>& rom_data, const std::vector<std::uint32_t>& ram_data);
 
     [[nodiscard]] bool at_end() const { return m_pc >= m_code_length; }
 

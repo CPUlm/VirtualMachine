@@ -9,24 +9,94 @@
 #include <fstream>
 #include <iostream>
 
+[[noreturn]] void error(const std::string& msg) {
+    std::cerr << "\x1b[1;31mERROR:\x1b[0m " << msg << "\n";
+    std::exit(EXIT_FAILURE);
+}
+
+struct CommandLineArgs {
+    std::vector<std::string> ram_files;
+    std::vector<std::string> rom_files;
+} cmd_line_args = {};
+
+void show_help_message(const char* argv0) {
+    std::cout << "USAGE: " << argv0 << "[options...] input.ram input.rom\n";
+}
+
+void parse_options(int argc, char* argv[]) {
+    bool stop_parsing_options = false;
+    for (int i = 1 /* ignore argv0 */; i < argc; i++) {
+        const std::string_view option = argv[i];
+        if (!stop_parsing_options) {
+            if (option == "-h" || option == "--help") {
+                show_help_message(argv[0]);
+                std::exit(EXIT_SUCCESS);
+            } else if (option == "--rom") {
+                if (i == argc)
+                    error("missing argument to '--rom'");
+
+                const std::string_view rom_file = argv[++i];
+                cmd_line_args.rom_files.push_back(std::string(rom_file));
+                continue;
+            } else if (option == "--ram") {
+                if (i == argc)
+                    error("missing argument to '--ram'");
+
+                const std::string_view ram_file = argv[++i];
+                cmd_line_args.rom_files.push_back(std::string(ram_file));
+                continue;
+            } else if (option == "--") {
+                stop_parsing_options = true;
+                continue;
+            } else if (option.starts_with("-")) {
+                error(std::string("unknown option '") + option.data() + "'");
+            }
+        }
+
+        if (option.ends_with(".data") || option.ends_with(".do") || option.ends_with(".rom")) {
+            cmd_line_args.ram_files.push_back(std::string(option));
+        } else if (option.ends_with(".code") || option.ends_with(".po") || option.ends_with(".ram")) {
+            cmd_line_args.rom_files.push_back(std::string(option));
+        } else {
+            error(std::string("cannot determine type of file '") + option.data() + "'");
+        }
+    }
+}
+
+static std::vector<std::uint32_t> read_file(const std::string& filename) {
+    std::FILE* file = std::fopen(filename.c_str(), "rb");
+    if (file == nullptr)
+        error(std::string("failed to read file '") + filename + "'");
+
+    std::vector<std::uint32_t> result;
+    std::uint32_t buffer[1024];
+    size_t read_words;
+    while ((read_words = std::fread(buffer, sizeof(buffer), sizeof(std::uint32_t), file)) > 0) {
+        result.insert(result.end(), buffer, buffer + read_words);
+    }
+
+    std::fclose(file);
+    return result;
+}
+
 int main(int argc, char* argv[]) {
     std::cout.sync_with_stdio(true);
 
-    if (argc < 2) {
-        std::cerr << "\x1b[1;31mERROR:\x1b[0m missing an input file\n";
-        return EXIT_FAILURE;
-    }
+    parse_options(argc, argv);
 
-    std::ifstream input(argv[1], std::ios::binary);
-    const std::vector<char> buffer(std::istreambuf_iterator<char>(input), {});
-    input.close();
+    if (cmd_line_args.rom_files.empty())
+        error("missing a rom file");
+    if (cmd_line_args.rom_files.size() > 1)
+        error("too many rom file");
+    if (cmd_line_args.ram_files.size() > 1)
+        error("too many ram file");
 
-    if (buffer.size() % sizeof(uint32_t) != 0) {
-        std::cerr << "\x1b[1;31mERROR:\x1b[0m machine code ill-formed\n";
-        return EXIT_FAILURE;
-    }
-
-    VM vm(reinterpret_cast<const uint32_t*>(buffer.data()), buffer.size() / sizeof(uint32_t));
+    std::vector<std::uint32_t> rom_data = read_file(cmd_line_args.rom_files[0]);
+    std::vector<std::uint32_t> ram_data;
+    if (!cmd_line_args.ram_files.empty())
+        ram_data = read_file(cmd_line_args.ram_files[0]);
+        
+    VM vm(rom_data, ram_data);
 
     while (true) {
         std::cout << "vm> ";
@@ -41,12 +111,20 @@ int main(int argc, char* argv[]) {
         } else if (line == "regs") {
             std::cout << "Registers:\n";
             for (unsigned i = 0; i < 31; ++i) {
-                std::cout << "  - r0 = " << vm.get_reg(i) << "\n";
+                std::cout << "  - r" << i << " = " << vm.get_reg(i) << "\n";
             }
         } else if (line == "step") {
             vm.step();
         } else if (line == "execute") {
             vm.execute();
+        } else if (line == "help") {
+            std::cout << "Allowed commands:\n";
+            std::cout << "  quit       Exits the program.";
+            std::cout << "  exit       Same.";
+            std::cout << "  regs       Prints all registers.";
+            std::cout << "  pc         Prints the current PC's value.";
+            std::cout << "  step       Execute a single instruction.";
+            std::cout << "  execute    Execute instructions until end of program or breakpoint.";
         } else {
             std::cerr << "\x1b[1;31mERROR:\x1b[0m invalid command\n";
         }
