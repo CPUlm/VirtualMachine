@@ -114,8 +114,8 @@ void VM::execute_alu(InstructionDecoder instruction) {
         m_flags[FLAG_CARRY] = __builtin_sub_overflow((std::uint32_t)rs1_val, (std::uint32_t)rs2_val, (std::uint32_t*)&rd_val);
         break;
     case BF_mul:
-        // TODO: fix bug
-        m_flags[FLAG_OVERFLOW] = __builtin_mul_overflow(rs1_val, rs2_val, &rd_val);
+        m_flags[FLAG_OVERFLOW] = __builtin_mul_overflow((std::int32_t)rs1_val, (std::int32_t)rs2_val, (std::int32_t*)&rd_val);
+        m_flags[FLAG_CARRY] = __builtin_mul_overflow((std::uint32_t)rs1_val, (std::uint32_t)rs2_val, (std::uint32_t*)&rd_val);
         break;
     case BF_div:
         rd_val = rs1_val / rs2_val;
