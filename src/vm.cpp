@@ -8,6 +8,8 @@
 #include <cstdlib>
 #include <cstring>
 
+#include "utils.h"
+
 VM::VM(const std::vector<std::uint32_t>& rom_data, const std::vector<std::uint32_t>& ram_data)
     : m_code(rom_data.data())
     , m_code_length(rom_data.size()), m_ram(ram_data) {
@@ -194,7 +196,7 @@ void VM::execute_jmp(InstructionDecoder instruction) {
 }
 
 void VM::execute_jmpi(InstructionDecoder instruction) {
-    uint16_t imm = instruction.get(16);
+    int32_t imm = sign_extend_24(instruction.get(24));
     m_pc += imm;
 }
 

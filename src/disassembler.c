@@ -3,6 +3,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "utils.h"
+
 enum opcode_t {
 #define INSTRUCTION(name, opcode) OP_##name = opcode,
 #include "instructions.def"
@@ -22,15 +24,6 @@ enum flag_t {
 
 static inline uint32_t get_bits(uint32_t inst, uint32_t start, uint32_t length) {
     return (inst >> start) & ((1 << length) - 1);
-}
-
-struct SignExtend24 {
-    int32_t x : 24;
-};
-
-static inline int32_t sign_extend_24(int32_t value) {
-    struct SignExtend24 s;
-    return (s.x = value);
 }
 
 static inline const char* compute_flags_string(uint32_t flags) {
