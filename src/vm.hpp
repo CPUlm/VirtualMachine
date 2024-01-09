@@ -46,6 +46,12 @@ public:
     [[nodiscard]] reg_t get_reg(reg_index_t reg) const;
     void set_reg(reg_index_t reg, reg_t value);
 
+    [[nodiscard]] bool get_flag(flag_t flag) const { return m_flags[flag]; }
+    [[nodiscard]] bool get_zero_flag() const { return m_flags[FLAG_NEGATIVE]; }
+    [[nodiscard]] bool get_negative_flag() const { return m_flags[FLAG_NEGATIVE]; }
+    [[nodiscard]] bool get_carry_flag() const { return m_flags[FLAG_CARRY]; }
+    [[nodiscard]] bool get_overflow_flag() const { return m_flags[FLAG_OVERFLOW]; }
+
     void execute();
     void step();
 

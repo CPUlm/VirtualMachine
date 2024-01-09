@@ -45,7 +45,7 @@ void VM::write_ram(ram_index_t adr, ram_word_t value) {
 
 bool VM::test_flags(size_t select) {
     for (int i = 0; i < MachineCodeInfo::NB_FLAGS; i++)
-        if ((select & (1 << i)) && m_flags[i])
+        if (((select & (1 << i)) != 0) && m_flags[i])
             return true;
     return false;
 }
@@ -192,26 +192,26 @@ void VM::execute_store(InstructionDecoder instruction) {
 
 void VM::execute_jmp(InstructionDecoder instruction) {
     reg_index_t rs = instruction.get_reg();
-    m_pc = get_reg(rs) - 1;
+    m_pc = get_reg(rs);
 }
 
 void VM::execute_jmpi(InstructionDecoder instruction) {
     int32_t imm = sign_extend_24(instruction.get(24));
-    m_pc += imm;
+    m_pc += imm - 1;
 }
 
 void VM::execute_jmpc(InstructionDecoder instruction) {
     reg_index_t rs = instruction.get_reg();
     size_t select = instruction.get(MachineCodeInfo::NB_FLAGS);
     if (test_flags(select))
-        m_pc = get_reg(rs) - 1;
+        m_pc = get_reg(rs);
 }
 
 void VM::execute_jmpic(InstructionDecoder instruction) {
-    uint16_t imm = instruction.get(16);
+    uint16_t imm = sign_extend_24(instruction.get(24));
     size_t select = instruction.get(MachineCodeInfo::NB_FLAGS);
     if (test_flags(select))
-        m_pc += imm;
+        m_pc += imm - 1;
 }
 
 void VM::warning(const char* msg) {

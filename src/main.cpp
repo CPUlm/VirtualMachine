@@ -9,11 +9,12 @@
 #include <fstream>
 #include <iostream>
 
+#include "disassembler.h"
+
 [[noreturn]] void error(const std::string& msg) {
     std::cerr << "\x1b[1;31mERROR:\x1b[0m " << msg << "\n";
     std::exit(EXIT_FAILURE);
 }
-
 struct CommandLineArgs {
     std::vector<std::string> ram_files;
     std::vector<std::string> rom_files;
@@ -43,7 +44,7 @@ void parse_options(int argc, char* argv[]) {
                     error("missing argument to '--ram'");
 
                 const std::string_view ram_file = argv[++i];
-                cmd_line_args.rom_files.push_back(std::string(ram_file));
+                cmd_line_args.ram_files.push_back(std::string(ram_file));
                 continue;
             } else if (option == "--") {
                 stop_parsing_options = true;
@@ -54,9 +55,9 @@ void parse_options(int argc, char* argv[]) {
         }
 
         if (option.ends_with(".data") || option.ends_with(".do") || option.ends_with(".rom")) {
-            cmd_line_args.rom_files.push_back(std::string(option));
-        } else if (option.ends_with(".code") || option.ends_with(".po") || option.ends_with(".ram")) {
             cmd_line_args.ram_files.push_back(std::string(option));
+        } else if (option.ends_with(".code") || option.ends_with(".po") || option.ends_with(".ram")) {
+            cmd_line_args.rom_files.push_back(std::string(option));
         } else {
             error(std::string("cannot determine type of file '") + option.data() + "'");
         }
@@ -71,7 +72,7 @@ static std::vector<std::uint32_t> read_file(const std::string& filename) {
     std::vector<std::uint32_t> result;
     std::uint32_t buffer[1024];
     size_t read_words;
-    while ((read_words = std::fread(buffer, sizeof(std::uint32_t) ,sizeof(buffer)/sizeof(std::uint32_t), file)) > 0) {
+    while ((read_words = std::fread(buffer, sizeof(std::uint32_t), sizeof(buffer)/sizeof(std::uint32_t), file)) > 0) {
         result.insert(result.end(), buffer, buffer + read_words);
     }
 
@@ -95,7 +96,7 @@ int main(int argc, char* argv[]) {
     std::vector<std::uint32_t> ram_data;
     if (!cmd_line_args.ram_files.empty())
         ram_data = read_file(cmd_line_args.ram_files[0]);
-        
+
     VM vm(rom_data, ram_data);
 
     while (true) {
@@ -113,10 +114,22 @@ int main(int argc, char* argv[]) {
             for (unsigned i = 0; i < 31; ++i) {
                 std::cout << "  - r" << i << " = " << vm.get_reg(i) << "\n";
             }
+        } else if (line == "flags") {
+            std::cout << "Flags:\n";
+            std::cout << "  Z: " << vm.get_flag(FLAG_ZERO) << "\n";
+            std::cout << "  N: " << vm.get_flag(FLAG_NEGATIVE) << "\n";
+            std::cout << "  C: " << vm.get_flag(FLAG_CARRY) << "\n";
+            std::cout << "  V: " << vm.get_flag(FLAG_OVERFLOW) << "\n";
         } else if (line == "step") {
             vm.step();
         } else if (line == "execute") {
             vm.execute();
+        } else if (line == "dis") {
+            const auto pc = vm.get_pc();
+            const auto inst = rom_data[pc];
+            cpulm_disassemble_inst(inst);
+        }  else if (line == "dis file") {
+            cpulm_disassemble_file(cmd_line_args.rom_files[0].c_str());
         } else if (line == "help") {
             std::cout << "Allowed commands:\n";
             std::cout << "  quit       Exits the program.";
