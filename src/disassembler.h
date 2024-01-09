@@ -5,6 +5,10 @@
 
 #include <stdint.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /// @brief Disassembles a single instruction.
 ///
 /// The result is printed to stdout. In case of bad error, an assembly comment
@@ -20,5 +24,9 @@ int cpulm_disassemble_inst(uint32_t inst);
 /// @param filename The path to the file to disassemble.
 /// @return -1 if failed to open file, 1 in case of invalid instruction and 0 if no error.
 int cpulm_disassemble_file(const char* filename);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // !CPULM_DISASSEMBLER_H
