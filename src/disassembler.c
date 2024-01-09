@@ -30,7 +30,6 @@ static inline const char* compute_flags_string(uint32_t flags) {
     static char buffer[5];
     char* ptr = buffer;
 
-    printf("%d\n", flags);
     if ((flags & (1 << FLAG_ZERO)) != 0)
         *ptr++ = 'z';
     if ((flags & (1 << FLAG_NEGATIVE)) != 0)
@@ -63,7 +62,7 @@ int cpulm_disassemble_inst(uint32_t inst) {
             printf("add r%d r%d r%d\n", rd, rs1, rs2);
             break;
         case BF_sub:
-            printf("add r%d r%d r%d\n", rd, rs1, rs2);
+            printf("sub r%d r%d r%d\n", rd, rs1, rs2);
             break;
         case BF_mul:
             printf("mul r%d r%d r%d\n", rd, rs1, rs2);
