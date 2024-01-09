@@ -54,9 +54,9 @@ void parse_options(int argc, char* argv[]) {
         }
 
         if (option.ends_with(".data") || option.ends_with(".do") || option.ends_with(".rom")) {
-            cmd_line_args.ram_files.push_back(std::string(option));
-        } else if (option.ends_with(".code") || option.ends_with(".po") || option.ends_with(".ram")) {
             cmd_line_args.rom_files.push_back(std::string(option));
+        } else if (option.ends_with(".code") || option.ends_with(".po") || option.ends_with(".ram")) {
+            cmd_line_args.ram_files.push_back(std::string(option));
         } else {
             error(std::string("cannot determine type of file '") + option.data() + "'");
         }
@@ -71,7 +71,7 @@ static std::vector<std::uint32_t> read_file(const std::string& filename) {
     std::vector<std::uint32_t> result;
     std::uint32_t buffer[1024];
     size_t read_words;
-    while ((read_words = std::fread(buffer, sizeof(buffer), sizeof(std::uint32_t), file)) > 0) {
+    while ((read_words = std::fread(buffer, sizeof(std::uint32_t) ,sizeof(buffer)/sizeof(std::uint32_t), file)) > 0) {
         result.insert(result.end(), buffer, buffer + read_words);
     }
 
