@@ -24,7 +24,7 @@ struct MachineCodeInfo {
     using OpCodeTy = std::uint8_t;
 
     /// Count of bits used to encode a opcode.
-    static constexpr size_t OPCODE_BITS = 5;
+    static constexpr size_t OPCODE_BITS = 4;
     /// Bit mask used to retrieve an opcode.
     static constexpr InstructionTy OPCODE_MASK = (1 << OPCODE_BITS) - 1;
     /// The total maximum count of supported opcodes.
