@@ -17,9 +17,14 @@ The VM start an interactive environnement. The following commands are supported:
 
 ## Build
 
-The project use CMake. You can type the following commands in the shell to compile the project:
-
+First, do not forget to clone recursively the GIT repository:
+```sh
+git submodule init
+git submodule update
 ```
+
+The project use CMake. You can type the following commands in the shell to compile the project:
+```sh
 mkdir build
 cd build
 cmake ..
