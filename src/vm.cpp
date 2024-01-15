@@ -8,11 +8,18 @@
 #include <cstdlib>
 #include <cstring>
 
+#include "screen.h"
 #include "utils.h"
 
 VM::VM(const std::vector<std::uint32_t>& rom_data, const std::vector<std::uint32_t>& ram_data)
     : m_code(rom_data.data())
-    , m_code_length(rom_data.size()), m_ram(ram_data) {
+    , m_code_length(rom_data.size())
+    , m_ram(ram_create()) {
+    screen_init_with_ram_mapping(m_ram);
+}
+
+VM::~VM() {
+    ram_destroy(m_ram);
 }
 
 void VM::execute() {
@@ -25,22 +32,6 @@ void VM::step() {
     decoder.instruction = m_code[m_pc];
     m_pc += 1;
     execute(decoder);
-}
-
-ram_word_t VM::read_ram(ram_index_t adr) {
-    if (m_ram.size() <= adr) {
-        m_ram.resize(adr + 1, 0);
-        fprintf(stderr,
-            "WARNING : try to read the ram without initialisation\n");
-    }
-    return m_ram[adr];
-}
-
-void VM::write_ram(ram_index_t adr, ram_word_t value) {
-    if (m_ram.size() <= adr) {
-        m_ram.resize(adr + 1, 0);
-    }
-    m_ram[adr] = value;
 }
 
 bool VM::test_flags(size_t select) {
@@ -168,7 +159,7 @@ void VM::execute_lsr(InstructionDecoder instruction) {
 void VM::execute_load(InstructionDecoder instruction) {
     reg_index_t rd = instruction.get_reg();
     reg_index_t rs = instruction.get_reg();
-    set_reg(rd, read_ram(get_reg(rs)));
+    set_reg(rd, ram_get(m_ram, get_reg(rs)));
 }
 
 void VM::execute_loadi(InstructionDecoder instruction) {
@@ -180,14 +171,14 @@ void VM::execute_loadi(InstructionDecoder instruction) {
     if (lhw) {
         set_reg(rd, get_reg(rs) + imm);
     } else {
-        set_reg(rd,  get_reg(rs) + (imm << 16));
+        set_reg(rd, get_reg(rs) + (imm << 16));
     }
 }
 
 void VM::execute_store(InstructionDecoder instruction) {
     reg_index_t rd = instruction.get_reg();
     reg_index_t rs = instruction.get_reg();
-    write_ram(get_reg(rd), get_reg(rs));
+    ram_set(m_ram, get_reg(rd), get_reg(rs));
 }
 
 void VM::execute_jmp(InstructionDecoder instruction) {

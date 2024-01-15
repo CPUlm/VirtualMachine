@@ -9,6 +9,7 @@ add_executable(cpulm_vm
     vm.hpp)
 
 target_link_libraries(cpulm_vm PUBLIC linenoise)
+target_link_libraries(cpulm_vm PUBLIC SparseMemory)
 
 add_executable(cpulm_dis disassembler.c)
 target_compile_definitions(cpulm_dis PRIVATE DISASSEMBLER_AS_PROGRAM)

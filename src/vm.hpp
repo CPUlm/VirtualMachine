@@ -6,6 +6,7 @@
 #define ASM_VM_VM_HPP
 
 #include "machine_code.hpp"
+#include "memory.h"
 #include <vector>
 
 using inst_t = MachineCodeInfo::InstructionTy;
@@ -39,6 +40,7 @@ struct InstructionDecoder {
 class VM {
 public:
     VM(const std::vector<std::uint32_t>& rom_data, const std::vector<std::uint32_t>& ram_data);
+    ~VM();
 
     [[nodiscard]] bool at_end() const { return m_pc >= m_code_length; }
 
@@ -56,8 +58,6 @@ public:
     void step();
 
 private:
-    ram_word_t read_ram(ram_index_t adr);
-    void write_ram(ram_index_t adr, ram_word_t value);
     bool test_flags(size_t select);
 
     void execute(InstructionDecoder instruction);
@@ -81,7 +81,7 @@ private:
     reg_t m_regs[MachineCodeInfo::REG_COUNT] = { 0 };
     const inst_t* m_code = nullptr;
     size_t m_code_length = 0;
-    std::vector<ram_word_t> m_ram;
+    ram_t* m_ram = nullptr;
     bool m_flags[MachineCodeInfo::NB_FLAGS];
 };
 
