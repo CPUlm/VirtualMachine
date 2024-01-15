@@ -42,6 +42,15 @@ static inline const char* compute_flags_string(uint32_t flags) {
     return &buffer[0];
 }
 
+#define CSI "\x1b["
+#define COLOR(style, text) CSI style "m" text CSI "0m"
+#define OP(name) COLOR("0", name)
+#define REG COLOR("36", "r%d")
+#define IMM COLOR("35", "%#x")
+#define COMMENT(str) COLOR("32", "; " str)
+
+#define BINOP(opname) OP(opname) " " REG " " REG " " REG "\n"
+
 int cpulm_disassemble_inst(uint32_t inst) {
     const uint32_t opcode = get_bits(inst, 0, 4);
 
@@ -53,72 +62,72 @@ int cpulm_disassemble_inst(uint32_t inst) {
     case OP_alu:
         switch (get_bits(inst, 19, 5)) {
         case BF_nor:
-            printf("nor r%d r%d r%d\n", rd, rs1, rs2);
+            printf(BINOP("nor"), rd, rs1, rs2);
             break;
         case BF_xor:
-            printf("xor r%d r%d r%d\n", rd, rs1, rs2);
+            printf(BINOP("xor"), rd, rs1, rs2);
             break;
         case BF_add:
-            printf("add r%d r%d r%d\n", rd, rs1, rs2);
+            printf(BINOP("add"), rd, rs1, rs2);
             break;
         case BF_sub:
-            printf("sub r%d r%d r%d\n", rd, rs1, rs2);
+            printf(BINOP("sub"), rd, rs1, rs2);
             break;
         case BF_mul:
-            printf("mul r%d r%d r%d\n", rd, rs1, rs2);
+            printf(BINOP("mul"), rd, rs1, rs2);
             break;
         case BF_div:
-            printf("div r%d r%d r%d\n", rd, rs1, rs2);
+            printf(BINOP("div"), rd, rs1, rs2);
             break;
         case BF_and:
-            printf("and r%d r%d r%d\n", rd, rs1, rs2);
+            printf(BINOP("and"), rd, rs1, rs2);
             break;
         case BF_or:
-            printf("or r%d r%d r%d\n", rd, rs1, rs2);
+            printf(BINOP("or"), rd, rs1, rs2);
             break;
         default:
-            printf("; invalid ALU instruction, alu code = %#x\n", get_bits(inst, 19, 5));
+            printf(COMMENT("invalid ALU instruction, alu code = %#x") "\n", get_bits(inst, 19, 5));
             return 1;
         }
         break;
     case OP_lsl:
-        printf("lsl r%d r%d r%d\n", rd, rs1, rs2);
+        printf(BINOP("lsl"), rd, rs1, rs2);
         break;
     case OP_asr:
-        printf("asr r%d r%d r%d\n", rd, rs1, rs2);
+        printf(BINOP("asr"), rd, rs1, rs2);
         break;
     case OP_lsr:
-        printf("lsr r%d r%d r%d\n", rd, rs1, rs2);
+        printf(BINOP("lsr"), rd, rs1, rs2);
         break;
     case OP_load:
-        printf("load r%d r%d\n", rd, rs1);
+        printf(OP("load") " " REG " " REG "\n", rd, rs1);
         break;
     case OP_loadi:
         if (get_bits(inst, 30, 1)) {
-            printf("loadi.l r%d r%d %#x\n", rd, rs1, get_bits(inst, 14, 16));
+            printf(OP("loadi.l") " " REG " " REG " " IMM "\n", rd, rs1, get_bits(inst, 14, 16));
         } else {
-            printf("loadi.h r%d r%d %#x\n", rd, rs1, get_bits(inst, 14, 16));
+            printf(OP("loadi.h") " " REG " " REG " " IMM "\n", rd, rs1, get_bits(inst, 14, 16));
         }
         break;
     case OP_store:
-        printf("store r%d r%d\n", rd, rs1);
+        printf(OP("store") " " REG " " REG "\n", rd, rs1);
         break;
     case OP_jmp:
-        printf("jmp r%d\n", rd);
+        printf(OP("jmp") " " REG "\n", rd);
         break;
     case OP_jmpc: {
         const char* flags = compute_flags_string(get_bits(inst, 9, 4));
-        printf("jmpc.%s r%d\n", flags, rd);
+        printf(OP("jmp.%s") " " REG "\n", flags, rd);
     } break;
     case OP_jmpi:
-        printf("jmpi %d\n", sign_extend_24(get_bits(inst, 4, 24)));
+        printf(OP("jmp") " " IMM "\n", sign_extend_24(get_bits(inst, 4, 24)));
         break;
     case OP_jmpic: {
         const char* flags = compute_flags_string(get_bits(inst, 28, 4));
-        printf("jmpic.%s %d\n", flags, sign_extend_24(get_bits(inst, 4, 24)));
+        printf(OP("jmp.%s") " " IMM "\n", flags, sign_extend_24(get_bits(inst, 4, 24)));
     } break;
     default:
-        printf("; invalid instruction, opcode = %#x\n", opcode);
+        printf(COMMENT("invalid instruction, opcode = %#x") "\n", opcode);
         return 1;
     }
 
