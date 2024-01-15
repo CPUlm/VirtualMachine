@@ -54,9 +54,9 @@ void parse_options(int argc, char* argv[]) {
             }
         }
 
-        if (option.ends_with(".data") || option.ends_with(".do") || option.ends_with(".rom")) {
+        if (option.ends_with(".data") || option.ends_with(".do") || option.ends_with(".ram")) {
             cmd_line_args.ram_files.push_back(std::string(option));
-        } else if (option.ends_with(".code") || option.ends_with(".po") || option.ends_with(".ram")) {
+        } else if (option.ends_with(".code") || option.ends_with(".po") || option.ends_with(".rom")) {
             cmd_line_args.rom_files.push_back(std::string(option));
         } else {
             error(std::string("cannot determine type of file '") + option.data() + "'");
