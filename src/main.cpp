@@ -79,7 +79,29 @@ static std::vector<std::uint32_t> read_file(const std::string& filename) {
     return result;
 }
 
+void term_show_cursor() {
+    printf("\x1b[?25h");
+}
+
+void term_save_cursor() {
+    printf("\x1b[s");
+}
+
+void term_restore_cursor() {
+    printf("\x1b[u");
+}
+
+void term_move_cursor(int x, int y) {
+    printf("\x1b[%d;%dH", y, x);
+}
+
+void term_clear_until_end() {
+    printf("\x1b[0J");
+}
+
 int main(int argc, char* argv[]) {
+    system("clear");
+
     std::ostream::sync_with_stdio(true);
 
     parse_options(argc, argv);
@@ -98,6 +120,9 @@ int main(int argc, char* argv[]) {
 
     VM vm(rom_data, ram_data);
 
+    term_show_cursor();
+
+    term_move_cursor(1, 17);
     while (true) {
         std::cout << "vm> ";
         std::string line;
@@ -144,16 +169,20 @@ int main(int argc, char* argv[]) {
             if (vm.at_end()) {
                 std::cout << "Program already terminated." << std::endl;
             } else {
+                term_save_cursor();
                 while (step_count > 0 && !vm.at_end()) {
                     vm.step();
                     step_count--;
                 }
+                term_restore_cursor();
             }
         } else if (line == "execute") {
             if (vm.at_end()) {
                 std::cout << "Program already terminated." << std::endl;
             } else {
+                term_save_cursor();
                 vm.execute();
+                term_restore_cursor();
             }
         } else if (line == "dis") {
             const auto pc = vm.get_pc();
