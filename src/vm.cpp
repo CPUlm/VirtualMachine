@@ -17,6 +17,7 @@ VM::VM(const std::vector<std::uint32_t>& rom_data, const std::vector<std::uint32
     , m_ram(ram_create()) {
     screen_init_with_ram_mapping(m_ram);
     ram_init(m_ram, ram_data.data(), ram_data.size());
+    m_previous_cycle_time = std::chrono::steady_clock::now();
 }
 
 VM::~VM() {
@@ -30,6 +31,14 @@ void VM::execute() {
 }
 
 void VM::step() {
+    auto now = std::chrono::steady_clock::now();
+    auto dur = std::chrono::duration_cast<std::chrono::nanoseconds>(now - m_previous_cycle_time).count();
+    if (dur >= 1'000'000'000) {
+        // 1 second has elapsed
+        ram_set(m_ram, 1024, 1);
+        m_previous_cycle_time = now;
+    }
+
     InstructionDecoder decoder;
     if (m_pc >= m_code_length) {
         VM::error("jumping outside of program.");

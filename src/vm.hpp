@@ -7,6 +7,7 @@
 
 #include "machine_code.hpp"
 #include "memory.h"
+#include <chrono>
 #include <vector>
 
 using inst_t = MachineCodeInfo::InstructionTy;
@@ -68,6 +69,7 @@ private:
     static void error(const char* msg);
 
 private:
+    std::chrono::steady_clock::time_point m_previous_cycle_time;
     std::uint64_t m_pc = 0;
     reg_t m_regs[MachineCodeInfo::REG_COUNT] = { 0 };
     const inst_t* m_code = nullptr;
