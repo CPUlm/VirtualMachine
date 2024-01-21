@@ -6,7 +6,6 @@
 
 #include <cstdio>
 #include <cstdlib>
-#include <fstream>
 #include <iostream>
 
 #include "disassembler.h"
@@ -37,14 +36,14 @@ void parse_options(int argc, char* argv[]) {
                     error("missing argument to '--rom'");
 
                 const std::string_view rom_file = argv[++i];
-                cmd_line_args.rom_files.push_back(std::string(rom_file));
+                cmd_line_args.rom_files.emplace_back(rom_file);
                 continue;
             } else if (option == "--ram") {
                 if (i == argc)
                     error("missing argument to '--ram'");
 
                 const std::string_view ram_file = argv[++i];
-                cmd_line_args.ram_files.push_back(std::string(ram_file));
+                cmd_line_args.ram_files.emplace_back(ram_file);
                 continue;
             } else if (option == "--") {
                 stop_parsing_options = true;
@@ -55,9 +54,9 @@ void parse_options(int argc, char* argv[]) {
         }
 
         if (option.ends_with(".data") || option.ends_with(".do") || option.ends_with(".ram")) {
-            cmd_line_args.ram_files.push_back(std::string(option));
+            cmd_line_args.ram_files.emplace_back(option);
         } else if (option.ends_with(".code") || option.ends_with(".po") || option.ends_with(".rom")) {
-            cmd_line_args.rom_files.push_back(std::string(option));
+            cmd_line_args.rom_files.emplace_back(option);
         } else {
             error(std::string("cannot determine type of file '") + option.data() + "'");
         }
@@ -72,7 +71,7 @@ static std::vector<std::uint32_t> read_file(const std::string& filename) {
     std::vector<std::uint32_t> result;
     std::uint32_t buffer[1024];
     size_t read_words;
-    while ((read_words = std::fread(buffer, sizeof(std::uint32_t), sizeof(buffer)/sizeof(std::uint32_t), file)) > 0) {
+    while ((read_words = std::fread(buffer, sizeof(std::uint32_t), sizeof(buffer) / sizeof(std::uint32_t), file)) > 0) {
         result.insert(result.end(), buffer, buffer + read_words);
     }
 
@@ -81,7 +80,7 @@ static std::vector<std::uint32_t> read_file(const std::string& filename) {
 }
 
 int main(int argc, char* argv[]) {
-    std::cout.sync_with_stdio(true);
+    std::ostream::sync_with_stdio(true);
 
     parse_options(argc, argv);
 
@@ -111,7 +110,7 @@ int main(int argc, char* argv[]) {
             std::cout << pc << std::endl;
         } else if (line == "regs") {
             std::cout << "Registers:\n";
-            for (unsigned i = 0; i < 31; ++i) {
+            for (unsigned i = 0; i < 32; ++i) {
                 std::cout << "  - r" << i << " = " << vm.get_reg(i) << "\n";
             }
         } else if (line == "flags") {
@@ -121,27 +120,33 @@ int main(int argc, char* argv[]) {
             std::cout << "  C: " << vm.get_flag(FLAG_CARRY) << "\n";
             std::cout << "  V: " << vm.get_flag(FLAG_OVERFLOW) << "\n";
         } else if (line == "step") {
-            vm.step();
+            if (vm.at_end()) {
+                std::cout << "Program already terminated." << std::endl;
+            } else {
+                vm.step();
+            }
         } else if (line == "execute") {
-            vm.execute();
+            if (vm.at_end()) {
+                std::cout << "Program already terminated." << std::endl;
+            } else {
+                vm.execute();
+            }
         } else if (line == "dis") {
             const auto pc = vm.get_pc();
             const auto inst = rom_data[pc];
             cpulm_disassemble_inst(inst);
-        }  else if (line == "dis file") {
+        } else if (line == "dis file") {
             cpulm_disassemble_file(cmd_line_args.rom_files[0].c_str());
         } else if (line == "help") {
             std::cout << "Allowed commands:\n";
-            std::cout << "  quit       Exits the program.";
-            std::cout << "  exit       Same.";
-            std::cout << "  regs       Prints all registers.";
-            std::cout << "  pc         Prints the current PC's value.";
-            std::cout << "  step       Execute a single instruction.";
-            std::cout << "  execute    Execute instructions until end of program or breakpoint.";
+            std::cout << "  quit       Exits the program.\n";
+            std::cout << "  exit       Same.\n";
+            std::cout << "  regs       Prints all registers.\n";
+            std::cout << "  pc         Prints the current PC's value.\n";
+            std::cout << "  step       Execute a single instruction.\n";
+            std::cout << "  execute    Execute instructions until end of program or breakpoint.\n";
         } else {
             std::cerr << "\x1b[1;31mERROR:\x1b[0m invalid command\n";
         }
     }
-
-    return EXIT_SUCCESS;
 }

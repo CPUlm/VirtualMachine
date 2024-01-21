@@ -16,10 +16,12 @@ VM::VM(const std::vector<std::uint32_t>& rom_data, const std::vector<std::uint32
     , m_code_length(rom_data.size())
     , m_ram(ram_create()) {
     screen_init_with_ram_mapping(m_ram);
+    ram_init(m_ram, ram_data.data(), ram_data.size());
 }
 
 VM::~VM() {
     ram_destroy(m_ram);
+    screen_terminate();
 }
 
 void VM::execute() {
@@ -29,8 +31,12 @@ void VM::execute() {
 
 void VM::step() {
     InstructionDecoder decoder;
+    if (m_pc >= m_code_length) {
+        VM::error("jumping outside of program.");
+    }
+
     decoder.instruction = m_code[m_pc];
-    m_pc += 1;
+    m_pc++;
     execute(decoder);
 }
 
@@ -224,4 +230,8 @@ reg_t VM::get_reg(reg_index_t reg) const {
 
 void VM::set_reg(reg_index_t reg, reg_t value) {
     m_regs[reg] = value;
+}
+
+bool VM::at_end() const {
+    return m_pc == 0xffffffff;
 }
