@@ -130,11 +130,24 @@ int main(int argc, char* argv[]) {
             std::cout << "  N: " << vm.get_flag(FLAG_NEGATIVE) << "\n";
             std::cout << "  C: " << vm.get_flag(FLAG_CARRY) << "\n";
             std::cout << "  V: " << vm.get_flag(FLAG_OVERFLOW) << "\n";
-        } else if (line == "step") {
+        } else if (line.starts_with("step")) {
+            if (line.length() > 4 && line[4] != ' ') {
+                std::cerr << "\x1b[1;31mERROR:\x1b[0m invalid command\n";
+                continue;
+            }
+
+            std::size_t step_count = 1;
+            if (line.length() > 4) {
+                step_count = std::stoull(line.substr(4));
+            }
+
             if (vm.at_end()) {
                 std::cout << "Program already terminated." << std::endl;
             } else {
-                vm.step();
+                while (step_count > 0 && !vm.at_end()) {
+                    vm.step();
+                    step_count--;
+                }
             }
         } else if (line == "execute") {
             if (vm.at_end()) {
