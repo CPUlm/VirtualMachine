@@ -110,8 +110,19 @@ int main(int argc, char* argv[]) {
             std::cout << pc << std::endl;
         } else if (line == "regs") {
             std::cout << "Registers:\n";
-            for (unsigned i = 0; i < 32; ++i) {
-                std::cout << "  - r" << i << " = " << vm.get_reg(i) << "\n";
+            for (unsigned i = 0; i < 8; ++i) {
+                for (unsigned j = 0; j < 4; ++j) {
+                    std::string value = std::to_string(vm.get_reg((j * 8) + i));
+                    std::string reg = "r" + std::to_string((j * 8) + i);
+                    std::size_t output_length = 7 + reg.length() + value.length();
+                    std::cout << "  - " << reg << " = " << value;
+                    while (output_length < 20) {
+                        std::cout << " ";
+                        output_length++;
+                    }
+                }
+
+                std::cout << "\n";
             }
         } else if (line == "flags") {
             std::cout << "Flags:\n";
