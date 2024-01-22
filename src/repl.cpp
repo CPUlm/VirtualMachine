@@ -245,7 +245,7 @@ bool REPL::execute(const char* command) {
         } else {
             const auto pc = m_vm.get_pc();
             const auto inst = m_vm.get_code()[pc];
-            cpulm_disassemble_inst(inst);
+            cpulm_disassemble_inst(inst, pc);
         }
     } break;
     case CommandID::STEP: {

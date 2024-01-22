@@ -16,7 +16,7 @@ extern "C" {
 ///
 /// @param inst The instruction to disassemble.
 /// @return 0 in case of valid instruction, 1 if invalid instruction.
-int cpulm_disassemble_inst(uint32_t inst);
+int cpulm_disassemble_inst(uint32_t inst, uint32_t pc);
 /// @brief Disassembles all the given file.
 ///
 /// This mainly call cpulm_disassemble_inst() on each instruction of the file.

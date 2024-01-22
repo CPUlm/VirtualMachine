@@ -49,7 +49,9 @@ static inline const char* compute_flags_string(uint32_t flags) {
 
 #define BINOP(opname) OP(opname) " " REG " " REG " " REG "\n"
 
-int cpulm_disassemble_inst(uint32_t inst) {
+int cpulm_disassemble_inst(uint32_t inst, uint32_t pc) {
+    printf(COLOR("33", "0x%04x \t"), pc);
+
     const uint32_t opcode = get_bits(inst, 0, 4);
 
     const uint32_t rd = get_bits(inst, 4, 5);
@@ -142,7 +144,7 @@ int cpulm_disassemble_file(const char* filename) {
     int error_code = 0;
     while ((read_words = fread(buffer, sizeof(uint32_t), 1024, file)) > 0) {
         for (size_t i = 0; i < read_words; i++)
-            error_code |= cpulm_disassemble_inst(buffer[i]);
+            error_code |= cpulm_disassemble_inst(buffer[i], (uint32_t)i);
     }
 
     fclose(file);

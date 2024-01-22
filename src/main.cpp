@@ -3,8 +3,8 @@
 // See file LICENSE.txt for full license details.
 
 #include "linenoise.h"
-#include "vm.hpp"
 #include "repl.hpp"
+#include "vm.hpp"
 
 #include <cstdio>
 #include <cstdlib>
@@ -129,7 +129,7 @@ int main(int argc, char* argv[]) {
     if (!cmd_line_args.ram_files.empty())
         ram_data = read_file(cmd_line_args.ram_files[0]);
 
-    VM vm(rom_data, ram_data, cmd_line_args.use_screen);
+    VM vm(rom_data, ram_data, cmd_line_args.use_screen, cmd_line_args.rom_files[0].c_str());
     REPL repl(vm);
     repl.run();
 

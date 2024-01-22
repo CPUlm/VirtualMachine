@@ -11,8 +11,9 @@
 #include "screen.h"
 #include "utils.h"
 
-VM::VM(const std::vector<std::uint32_t>& rom_data, const std::vector<std::uint32_t>& ram_data, bool use_screen)
-    : m_code(rom_data.data())
+VM::VM(const std::vector<std::uint32_t>& rom_data, const std::vector<std::uint32_t>& ram_data, bool use_screen, const char* code_filename)
+    : m_code_filename(code_filename)
+    , m_code(rom_data.data())
     , m_code_length(rom_data.size())
     , m_ram(ram_create())
     , m_use_screen(use_screen) {

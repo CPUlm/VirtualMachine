@@ -5,6 +5,8 @@ add_library(linenoise STATIC
 add_executable(cpulm_vm
     main.cpp
     disassembler.c
+    repl.cpp
+    repl.hpp
     vm.cpp
     vm.hpp)
 

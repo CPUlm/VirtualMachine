@@ -35,10 +35,10 @@ struct InstructionDecoder {
 
 class VM {
 public:
-    VM(const std::vector<std::uint32_t>& rom_data, const std::vector<std::uint32_t>& ram_data, bool use_screen = true);
+    VM(const std::vector<std::uint32_t>& rom_data, const std::vector<std::uint32_t>& ram_data, bool use_screen = true, const char* code_filename = nullptr);
     ~VM();
 
-    [[nodiscard]] const char* get_code_filename() const { return "TODO"; }
+    [[nodiscard]] const char* get_code_filename() const { return m_code_filename; }
     [[nodiscard]] const inst_t* get_code() const { return m_code; }
 
     [[nodiscard]] bool at_end() const;
@@ -72,6 +72,7 @@ private:
     static void error(const char* msg);
 
 private:
+    const char* m_code_filename;
     std::chrono::steady_clock::time_point m_previous_cycle_time;
     std::uint64_t m_pc = 0;
     reg_t m_regs[MachineCodeInfo::REG_COUNT] = { 0 };
