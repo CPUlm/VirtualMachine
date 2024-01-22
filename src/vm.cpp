@@ -11,7 +11,18 @@
 #include "screen.h"
 #include "utils.h"
 
-VM::VM(const std::vector<std::uint32_t>& rom_data, const std::vector<std::uint32_t>& ram_data, bool use_screen, const char* code_filename)
+void Breakpoint::enable(inst_t* code) {
+    old_inst = code[addr];
+    code[addr] = OP_break;
+    is_enabled = true;
+}
+
+void Breakpoint::disable(inst_t* code) {
+    code[addr] = old_inst;
+    is_enabled = false;
+}
+
+VM::VM(std::vector<std::uint32_t>& rom_data, const std::vector<std::uint32_t>& ram_data, bool use_screen, const char* code_filename)
     : m_code_filename(code_filename)
     , m_code(rom_data.data())
     , m_code_length(rom_data.size())
@@ -30,8 +41,11 @@ VM::~VM() {
 }
 
 void VM::execute() {
-    while (!at_end())
+    while (!at_end() && !m_at_breakpoint) {
         step();
+    }
+
+    m_at_breakpoint = false;
 }
 
 void VM::step() {
@@ -88,6 +102,8 @@ void VM::execute(InstructionDecoder instruction) {
         return execute_jmpc(instruction);
     case OP_jmpic:
         return execute_jmpic(instruction);
+    case OP_break:
+        return execute_break(instruction);
     default:
         error("invalid opcode");
         return;
@@ -227,6 +243,13 @@ void VM::execute_jmpic(InstructionDecoder instruction) {
         m_pc += imm - 1;
 }
 
+void VM::execute_break(InstructionDecoder) {
+    m_pc -= 1;
+    printf("Breakpoint at PC = %#lx (%lu) reached.\n", m_pc, m_pc);
+    m_breakpoints[m_pc].disable(m_code);
+    m_at_breakpoint = true;
+}
+
 void VM::warning(const char* msg) {
     fprintf(stderr, "\x1b[1;33mWARNING:\x1b[0m %s\n", msg);
 }
@@ -250,4 +273,42 @@ void VM::set_reg(reg_index_t reg, reg_t value) {
 
 bool VM::at_end() const {
     return m_pc == 0xffffffff;
+}
+
+void VM::add_breakpoint(addr_t addr) {
+    auto it = m_breakpoints.find(addr);
+    if (it == m_breakpoints.end()) {
+        Breakpoint breakpoint;
+        breakpoint.addr = addr;
+        breakpoint.enable(m_code);
+        m_breakpoints.insert({ addr, breakpoint });
+        printf("Breakpoint added at %#x\n", addr);
+    } else {
+        it->second.enable(m_code);
+        printf("Breakpoint enabled at %#x\n", addr);
+    }
+}
+
+void VM::remove_breakpoint(addr_t pc) {
+    auto it = m_breakpoints.find(pc);
+    if (it == m_breakpoints.end())
+        return;
+
+    it->second.disable(m_code);
+    m_breakpoints.erase(it);
+}
+
+void VM::print_breakpoints() {
+    if (m_breakpoints.empty()) {
+        printf("No breakpoints\n");
+        return;
+    }
+
+    printf("There is %lu breakpoint(s):\n", m_breakpoints.size());
+    for (auto& [addr, breakpoint] : m_breakpoints) {
+        printf("  - Breakpoint at %#x", addr);
+        if (!breakpoint.is_enabled)
+            printf(" (disabled)");
+        printf("\n");
+    }
 }

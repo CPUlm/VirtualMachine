@@ -7,8 +7,11 @@
 #include "linenoise.h"
 
 #include <charconv>
+#include <cstdio>
 #include <cstring>
 #include <optional>
+#include <string>
+#include <string_view>
 
 static bool is_whitespace(char ch) {
     switch (ch) {
@@ -30,6 +33,7 @@ enum class CommandID {
     HELP,
     REGS,
     FLAGS,
+    BREAK,
     PC,
     DIS,
     STEP,
@@ -52,6 +56,8 @@ public:
             return CommandID::REGS;
         } else if (ident == "f" || ident == "flag" || ident == "flags") {
             return CommandID::FLAGS;
+        } else if (ident == "b" || ident == "break") {
+            return CommandID::BREAK;
         } else if (ident == "pc") {
             return CommandID::PC;
         } else if (ident == "d" || ident == "dis" || ident == "disassembler") {
@@ -130,6 +136,7 @@ static void completion_callback(const char* line, linenoiseCompletions* lc) {
         "help",
         "regs",
         "flags",
+        "break",
         "pc",
         "dis",
         "disassembler",
@@ -177,6 +184,14 @@ static char* hints_callback(const char* line, int* color, int* bold) {
                 return (char*)" <reg> [<new_value>]";
         }
     } break;
+    case CommandID::BREAK:
+        if (!parser.at_end())
+            return nullptr;
+
+        if (line[line_len - 1] == ' ')
+            return (char*)"<addr>";
+        else
+            return (char*)" <addr>";
     case CommandID::DIS:
         if (!parser.at_end())
             return nullptr;
@@ -240,7 +255,7 @@ bool REPL::execute(const char* command) {
         auto reg = parser.parse_uint();
         if (!reg.has_value()) {
             if (!parser.expect_end())
-                break;
+                goto error;
 
             // Print all registers
             printf("Registers:\n");
@@ -266,7 +281,7 @@ bool REPL::execute(const char* command) {
 
             auto value = parser.parse_reg_value();
             if (!parser.expect_end())
-                break;
+                goto error;
 
             if (value.has_value()) {
                 if (reg.value() <= 1) {
@@ -293,6 +308,20 @@ bool REPL::execute(const char* command) {
             m_vm.get_flag(FLAG_OVERFLOW));
 
         break;
+    case CommandID::BREAK: {
+        auto addr = parser.parse_uint();
+        if (!addr.has_value()) {
+            if (!parser.expect_end())
+                goto error;
+
+            m_vm.print_breakpoints();
+        } else {
+            if (!parser.expect_end())
+                goto error;
+
+            m_vm.add_breakpoint(addr.value());
+        }
+    } break;
     case CommandID::PC:
         if (!parser.expect_end())
             goto error;
