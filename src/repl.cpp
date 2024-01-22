@@ -8,6 +8,7 @@
 
 #include <charconv>
 #include <cstring>
+#include <optional>
 
 static bool is_whitespace(char ch) {
     switch (ch) {
@@ -85,8 +86,7 @@ public:
         return std::string_view(begin, std::distance(begin, m_it));
     }
 
-    std::uint32_t parse_int() {
-
+    std::optional<uint32_t> parse_uint() {
         skip_whitespace();
 
         const char* end = m_it + strlen(m_it);
@@ -96,7 +96,21 @@ public:
             m_it = result.ptr;
             return value;
         } else {
-            return UINT32_MAX;
+            return std::nullopt;
+        }
+    }
+
+    std::optional<reg_t> parse_reg_value() {
+        skip_whitespace();
+
+        const char* end = m_it + strlen(m_it);
+        std::make_signed_t<reg_t> value;
+        auto result = std::from_chars(m_it, end, value);
+        if (result.ec == std::errc()) {
+            m_it = result.ptr;
+            return value;
+        } else {
+            return std::nullopt;
         }
     }
 
@@ -201,28 +215,53 @@ bool REPL::execute(const char* command) {
         parser.expect_end();
         return true;
     case CommandID::REGS: {
-        if (!parser.expect_end())
-            break;
+        auto reg = parser.parse_uint();
+        if (!reg.has_value()) {
+            if (!parser.expect_end())
+                break;
 
-        printf("Registers:\n");
-        for (unsigned i = 0; i < 8; ++i) {
-            for (unsigned j = 0; j < 4; ++j) {
-                std::string value = std::to_string(m_vm.get_reg((j * 8) + i));
-                std::string reg = "r" + std::to_string((j * 8) + i);
-                std::size_t output_length = 7 + reg.length() + value.length();
-                printf("  - %s = %s", reg.c_str(), value.c_str());
-                while (output_length < 20) {
-                    putc(' ', stdout);
-                    output_length++;
+            // Print all registers
+            printf("Registers:\n");
+            for (unsigned i = 0; i < 8; ++i) {
+                for (unsigned j = 0; j < 4; ++j) {
+                    std::string value = std::to_string(m_vm.get_reg((j * 8) + i));
+                    std::string reg = "r" + std::to_string((j * 8) + i);
+                    std::size_t output_length = 7 + reg.length() + value.length();
+                    printf("  - %s = %s", reg.c_str(), value.c_str());
+                    while (output_length < 20) {
+                        putc(' ', stdout);
+                        output_length++;
+                    }
                 }
+
+                putc('\n', stdout);
+            }
+        } else {
+            if (reg.value() > 31) {
+                printf("\x1b[1;31mERROR:\x1b[0m register r%d does not exist\n", reg.value());
+                break;
             }
 
-            putc('\n', stdout);
+            auto value = parser.parse_reg_value();
+            if (!parser.expect_end())
+                goto error;
+
+            if (value.has_value()) {
+                if (reg.value() <= 1) {
+                    printf("\x1b[1;31mERROR:\x1b[0m register r%d is read-only\n", reg.value());
+                    break;
+                }
+
+                m_vm.set_reg(reg.value(), value.value());
+                printf("Register r%d set to %d\n", reg.value(), value.value());
+            } else {
+                printf("Register r%d = %d\n", reg.value(), m_vm.get_reg(reg.value()));
+            }
         }
     } break;
     case CommandID::FLAGS:
         if (!parser.expect_end())
-            break;
+            goto error;
 
         printf("Flags:\n");
         printf("  - Z = %d             - N = %d             - C = %d             - V = %d\n",
@@ -234,7 +273,7 @@ bool REPL::execute(const char* command) {
         break;
     case CommandID::PC:
         if (!parser.expect_end())
-            break;
+            goto error;
 
         printf("PC: %#x (%u)\n", m_vm.get_pc(), m_vm.get_pc());
 
@@ -242,7 +281,7 @@ bool REPL::execute(const char* command) {
     case CommandID::DIS: {
         std::string_view subcommand = parser.parse_ident();
         if (!parser.expect_end())
-            break;
+            goto error;
 
         if (subcommand == "file") {
             cpulm_disassemble_file(m_vm.get_code_filename());
@@ -253,12 +292,9 @@ bool REPL::execute(const char* command) {
         }
     } break;
     case CommandID::STEP: {
-        uint32_t steps = parser.parse_int();
+        auto steps = parser.parse_uint().value_or(1);
         if (!parser.expect_end())
-            break;
-
-        if (steps == UINT32_MAX)
-            steps = 1; // default value
+            goto error;
 
         if (m_vm.at_end()) {
             printf("Program already terminated.\n");
@@ -271,7 +307,7 @@ bool REPL::execute(const char* command) {
     } break;
     case CommandID::EXECUTE:
         if (!parser.expect_end())
-            break;
+            goto error;
 
         if (m_vm.at_end()) {
             printf("Program already terminated.\n");
@@ -284,9 +320,12 @@ bool REPL::execute(const char* command) {
         linenoiseClearScreen();
         break;
     case CommandID::ERROR:
-        printf("\x1b[1;31mERROR:\x1b[0m invalid command\n");
+        goto error;
         break;
     }
 
     return true;
+
+error:
+    printf("\x1b[1;31mERROR:\x1b[0m invalid command\n");
 }
