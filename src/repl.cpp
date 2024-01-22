@@ -154,19 +154,41 @@ static char* hints_callback(const char* line, int* color, int* bold) {
     CommandParser parser(line);
     CommandID command_id = parser.parse_command();
     parser.skip_whitespace();
-    if (!parser.at_end())
-        return nullptr;
 
     *color = 2;
     size_t line_len = strlen(line);
 
     switch (command_id) {
+    case CommandID::REGS: {
+        auto reg = parser.parse_uint();
+        parser.skip_whitespace();
+        if (!parser.at_end())
+            return nullptr;
+
+        if (reg.has_value()) {
+            if (line[line_len - 1] == ' ')
+                return (char*)"[<new_value>]";
+            else
+                return (char*)" [<new_value>]";
+        } else {
+            if (line[line_len - 1] == ' ')
+                return (char*)"<reg> [<new_value>]";
+            else
+                return (char*)" <reg> [<new_value>]";
+        }
+    } break;
     case CommandID::DIS:
+        if (!parser.at_end())
+            return nullptr;
+
         if (line[line_len - 1] == ' ')
             return (char*)"file";
         else
             return (char*)" file";
     case CommandID::STEP:
+        if (!parser.at_end())
+            return nullptr;
+
         if (line[line_len - 1] == ' ')
             return (char*)"<n>";
         else
@@ -244,7 +266,7 @@ bool REPL::execute(const char* command) {
 
             auto value = parser.parse_reg_value();
             if (!parser.expect_end())
-                goto error;
+                break;
 
             if (value.has_value()) {
                 if (reg.value() <= 1) {
