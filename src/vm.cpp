@@ -221,7 +221,7 @@ void VM::execute_jmpc(InstructionDecoder instruction) {
 }
 
 void VM::execute_jmpic(InstructionDecoder instruction) {
-    uint16_t imm = sign_extend_24(instruction.get(24));
+    int32_t imm = sign_extend_24(instruction.get(24));
     size_t select = instruction.get(MachineCodeInfo::NB_FLAGS);
     if (test_flags(select))
         m_pc += imm - 1;
