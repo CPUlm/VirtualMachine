@@ -38,6 +38,9 @@ public:
     VM(const std::vector<std::uint32_t>& rom_data, const std::vector<std::uint32_t>& ram_data, bool use_screen = true);
     ~VM();
 
+    [[nodiscard]] const char* get_code_filename() const { return "TODO"; }
+    [[nodiscard]] const inst_t* get_code() const { return m_code; }
+
     [[nodiscard]] bool at_end() const;
 
     [[nodiscard]] std::uint32_t get_pc() const { return m_pc; }

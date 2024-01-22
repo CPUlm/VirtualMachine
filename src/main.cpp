@@ -2,7 +2,9 @@
 // This file is part of asm which is released under the MIT license.
 // See file LICENSE.txt for full license details.
 
+#include "linenoise.h"
 #include "vm.hpp"
+#include "repl.hpp"
 
 #include <cstdio>
 #include <cstdlib>
@@ -109,7 +111,7 @@ void term_clear_until_end() {
 }
 
 int main(int argc, char* argv[]) {
-    system("clear");
+    linenoiseClearScreen();
 
     std::ostream::sync_with_stdio(true);
 
@@ -128,87 +130,8 @@ int main(int argc, char* argv[]) {
         ram_data = read_file(cmd_line_args.ram_files[0]);
 
     VM vm(rom_data, ram_data, cmd_line_args.use_screen);
+    REPL repl(vm);
+    repl.run();
 
-    term_show_cursor();
-    term_move_cursor(1, 17);
-
-    while (true) {
-        std::cout << "vm> ";
-        std::string line;
-        std::getline(std::cin, line);
-
-        if (line == "quit" || line == "exit") {
-            return EXIT_SUCCESS;
-        } else if (line == "pc") {
-            const auto pc = vm.get_pc();
-            std::cout << pc << std::endl;
-        } else if (line == "regs") {
-            std::cout << "Registers:\n";
-            for (unsigned i = 0; i < 8; ++i) {
-                for (unsigned j = 0; j < 4; ++j) {
-                    std::string value = std::to_string(vm.get_reg((j * 8) + i));
-                    std::string reg = "r" + std::to_string((j * 8) + i);
-                    std::size_t output_length = 7 + reg.length() + value.length();
-                    std::cout << "  - " << reg << " = " << value;
-                    while (output_length < 20) {
-                        std::cout << " ";
-                        output_length++;
-                    }
-                }
-
-                std::cout << "\n";
-            }
-        } else if (line == "flags") {
-            std::cout << "Flags:\n";
-            std::cout << "  Z: " << vm.get_flag(FLAG_ZERO) << "\n";
-            std::cout << "  N: " << vm.get_flag(FLAG_NEGATIVE) << "\n";
-            std::cout << "  C: " << vm.get_flag(FLAG_CARRY) << "\n";
-            std::cout << "  V: " << vm.get_flag(FLAG_OVERFLOW) << "\n";
-        } else if (line.starts_with("step")) {
-            if (line.length() > 4 && line[4] != ' ') {
-                std::cerr << "\x1b[1;31mERROR:\x1b[0m invalid command\n";
-                continue;
-            }
-
-            std::size_t step_count = 1;
-            if (line.length() > 4) {
-                step_count = std::stoull(line.substr(4));
-            }
-
-            if (vm.at_end()) {
-                std::cout << "Program already terminated." << std::endl;
-            } else {
-                term_save_cursor();
-                while (step_count > 0 && !vm.at_end()) {
-                    vm.step();
-                    step_count--;
-                }
-                term_restore_cursor();
-            }
-        } else if (line == "execute") {
-            if (vm.at_end()) {
-                std::cout << "Program already terminated." << std::endl;
-            } else {
-                term_save_cursor();
-                vm.execute();
-                term_restore_cursor();
-            }
-        } else if (line == "dis") {
-            const auto pc = vm.get_pc();
-            const auto inst = rom_data[pc];
-            cpulm_disassemble_inst(inst);
-        } else if (line == "dis file") {
-            cpulm_disassemble_file(cmd_line_args.rom_files[0].c_str());
-        } else if (line == "help") {
-            std::cout << "Allowed commands:\n";
-            std::cout << "  quit       Exits the program.\n";
-            std::cout << "  exit       Same.\n";
-            std::cout << "  regs       Prints all registers.\n";
-            std::cout << "  pc         Prints the current PC's value.\n";
-            std::cout << "  step       Execute a single instruction.\n";
-            std::cout << "  execute    Execute instructions until end of program or breakpoint.\n";
-        } else {
-            std::cerr << "\x1b[1;31mERROR:\x1b[0m invalid command\n";
-        }
-    }
+    return 0;
 }
