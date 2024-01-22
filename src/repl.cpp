@@ -32,7 +32,8 @@ enum class CommandID {
     PC,
     DIS,
     STEP,
-    EXECUTE
+    EXECUTE,
+    CLEAR
 };
 
 class CommandParser {
@@ -58,6 +59,8 @@ public:
             return CommandID::STEP;
         } else if (ident == "e" || ident == "execute" || ident == "exec" || ident == "continue" || ident == "cont") {
             return CommandID::EXECUTE;
+        } else if (ident == "clear") {
+            return CommandID::CLEAR;
         } else {
             return CommandID::ERROR;
         }
@@ -118,7 +121,8 @@ static void completion_callback(const char* line, linenoiseCompletions* lc) {
         "disassembler",
         "step",
         "execute",
-        "continue"
+        "continue",
+        "clear"
     };
 
     while (is_whitespace(*line))
@@ -275,6 +279,9 @@ bool REPL::execute(const char* command) {
             m_vm.execute();
         }
 
+        break;
+    case CommandID::CLEAR:
+        linenoiseClearScreen();
         break;
     case CommandID::ERROR:
         printf("\x1b[1;31mERROR:\x1b[0m invalid command\n");
