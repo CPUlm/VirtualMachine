@@ -11,18 +11,21 @@
 #include "screen.h"
 #include "utils.h"
 
-VM::VM(const std::vector<std::uint32_t>& rom_data, const std::vector<std::uint32_t>& ram_data)
+VM::VM(const std::vector<std::uint32_t>& rom_data, const std::vector<std::uint32_t>& ram_data, bool use_screen)
     : m_code(rom_data.data())
     , m_code_length(rom_data.size())
-    , m_ram(ram_create()) {
-    screen_init_with_ram_mapping(m_ram);
+    , m_ram(ram_create())
+    , m_use_screen(use_screen) {
+    if (m_use_screen)
+        screen_init_with_ram_mapping(m_ram);
     ram_init(m_ram, ram_data.data(), ram_data.size());
     m_previous_cycle_time = std::chrono::steady_clock::now();
 }
 
 VM::~VM() {
     ram_destroy(m_ram);
-    screen_terminate();
+    if (m_use_screen)
+        screen_terminate();
 }
 
 void VM::execute() {
@@ -31,6 +34,9 @@ void VM::execute() {
 }
 
 void VM::step() {
+    if (at_end())
+        return;
+
     auto now = std::chrono::steady_clock::now();
     auto dur = std::chrono::duration_cast<std::chrono::nanoseconds>(now - m_previous_cycle_time).count();
     if (dur >= 1'000'000'000) {

@@ -35,7 +35,7 @@ struct InstructionDecoder {
 
 class VM {
 public:
-    VM(const std::vector<std::uint32_t>& rom_data, const std::vector<std::uint32_t>& ram_data);
+    VM(const std::vector<std::uint32_t>& rom_data, const std::vector<std::uint32_t>& ram_data, bool use_screen = true);
     ~VM();
 
     [[nodiscard]] bool at_end() const;
@@ -75,6 +75,7 @@ private:
     const inst_t* m_code = nullptr;
     size_t m_code_length = 0;
     ram_t* m_ram = nullptr;
+    bool m_use_screen = false;
     bool m_flags[MachineCodeInfo::NB_FLAGS] = { false };
 };
 

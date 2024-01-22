@@ -17,6 +17,7 @@
 struct CommandLineArgs {
     std::vector<std::string> ram_files;
     std::vector<std::string> rom_files;
+    bool use_screen = true;
 } cmd_line_args = {};
 
 void show_help_message(const char* argv0) {
@@ -31,6 +32,9 @@ void parse_options(int argc, char* argv[]) {
             if (option == "-h" || option == "--help") {
                 show_help_message(argv[0]);
                 std::exit(EXIT_SUCCESS);
+            } else if (option == "--no-screen") {
+                cmd_line_args.use_screen = false;
+                continue;
             } else if (option == "--rom") {
                 if (i == argc)
                     error("missing argument to '--rom'");
@@ -80,23 +84,28 @@ static std::vector<std::uint32_t> read_file(const std::string& filename) {
 }
 
 void term_show_cursor() {
-    printf("\x1b[?25h");
+    if (cmd_line_args.use_screen)
+        printf("\x1b[?25h");
 }
 
 void term_save_cursor() {
-    printf("\x1b[s");
+    if (cmd_line_args.use_screen)
+        printf("\x1b[s");
 }
 
 void term_restore_cursor() {
-    printf("\x1b[u");
+    if (cmd_line_args.use_screen)
+        printf("\x1b[u");
 }
 
 void term_move_cursor(int x, int y) {
-    printf("\x1b[%d;%dH", y, x);
+    if (cmd_line_args.use_screen)
+        printf("\x1b[%d;%dH", y, x);
 }
 
 void term_clear_until_end() {
-    printf("\x1b[0J");
+    if (cmd_line_args.use_screen)
+        printf("\x1b[0J");
 }
 
 int main(int argc, char* argv[]) {
@@ -118,11 +127,11 @@ int main(int argc, char* argv[]) {
     if (!cmd_line_args.ram_files.empty())
         ram_data = read_file(cmd_line_args.ram_files[0]);
 
-    VM vm(rom_data, ram_data);
+    VM vm(rom_data, ram_data, cmd_line_args.use_screen);
 
     term_show_cursor();
-
     term_move_cursor(1, 17);
+
     while (true) {
         std::cout << "vm> ";
         std::string line;
