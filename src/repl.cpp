@@ -163,14 +163,14 @@ static char* hints_callback(const char* line, int* color, int* bold) {
     switch (command_id) {
     case CommandID::DIS:
         if (line[line_len - 1] == ' ')
-            return "file";
+            return (char*)"file";
         else
-            return " file";
+            return (char*)" file";
     case CommandID::STEP:
         if (line[line_len - 1] == ' ')
-            return "<n>";
+            return (char*)"<n>";
         else
-            return " <n>";
+            return (char*)" <n>";
     default:
         return nullptr;
     }
