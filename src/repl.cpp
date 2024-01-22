@@ -328,4 +328,5 @@ bool REPL::execute(const char* command) {
 
 error:
     printf("\x1b[1;31mERROR:\x1b[0m invalid command\n");
+    return true;
 }
