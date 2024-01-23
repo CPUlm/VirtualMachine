@@ -22,6 +22,22 @@ void Breakpoint::disable(inst_t* code) {
     is_enabled = false;
 }
 
+static void synchronize_time(ram_t* ram, addr_t addr, word_t word) {
+    if (word > 0) {
+        time_t now = time(0);
+        tm* tm = localtime(&now);
+
+        ram_set(ram, 1025, 0);
+        ram_set(ram, 1026, 1);
+        ram_set(ram, 1027, tm->tm_sec % 60 /* because of the leap second */);
+        ram_set(ram, 1028, tm->tm_min);
+        ram_set(ram, 1029, tm->tm_hour);
+        ram_set(ram, 1030, (tm->tm_wday + 6) % 7);
+        ram_set(ram, 1031, tm->tm_mon);
+        ram_set(ram, 1032, tm->tm_year + 1900);
+    }
+}
+
 VM::VM(std::vector<std::uint32_t>& rom_data, const std::vector<std::uint32_t>& ram_data, bool use_screen, const char* code_filename)
     : m_code_filename(code_filename)
     , m_code(rom_data.data())
@@ -31,6 +47,7 @@ VM::VM(std::vector<std::uint32_t>& rom_data, const std::vector<std::uint32_t>& r
     if (m_use_screen)
         screen_init_with_ram_mapping(m_ram);
     ram_init(m_ram, ram_data.data(), ram_data.size());
+    ram_install_write_listener(m_ram, 1025, 1025, &synchronize_time);
     m_previous_cycle_time = std::chrono::steady_clock::now();
 }
 
